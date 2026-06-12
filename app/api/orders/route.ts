@@ -1,0 +1,61 @@
+import { NextResponse } from "next/server";
+import { nanoid } from "nanoid";
+import { supabaseServer } from "@/lib/supabase/server";
+import type { CartItem } from "@/lib/stores/cart";
+
+export interface CreateOrderRequest {
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  state: string;
+  city: string;
+  streetAddress: string;
+  landmark?: string;
+  deliveryNotes?: string;
+  items: CartItem[];
+  subtotal: number;
+  deliveryFee: number;
+  total: number;
+}
+
+export async function POST(request: Request) {
+  try {
+    const body = (await request.json()) as CreateOrderRequest;
+
+    const reference = nanoid(16);
+
+    const { data, error } = await supabaseServer
+      .from("orders")
+      .insert({
+        reference,
+        status: "pending",
+        customer_name: body.customerName,
+        customer_email: body.customerEmail,
+        customer_phone: body.customerPhone,
+        state: body.state,
+        city: body.city,
+        street_address: body.streetAddress,
+        landmark: body.landmark,
+        delivery_notes: body.deliveryNotes,
+        subtotal: body.subtotal,
+        delivery_fee: body.deliveryFee,
+        total: body.total,
+        items: body.items,
+      })
+      .select("id, reference")
+      .single();
+
+    if (error) {
+      console.error("Supabase error:", error);
+      return NextResponse.json({ error: "Failed to create order" }, { status: 500 });
+    }
+
+    return NextResponse.json({
+      orderId: data.id,
+      reference: data.reference,
+    });
+  } catch (error) {
+    console.error("Order creation error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}

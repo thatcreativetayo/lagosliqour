@@ -1,0 +1,131 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: "Retcaro";
+  src: url("/Retcaro-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Sentient";
+  src: url("/Sentient-Regular.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --color-cream: #efece4;
+  --color-ink: #291315;
+  --color-wine: #6d1b1a;
+  --color-gold: #d8b25a;
+  --color-dark: #262B33;
+  --font-serif: "Retcaro", serif;
+  --font-sans: "Sentient", serif;
+}
+
+/* Scrollbar hide utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+* {
+  box-sizing: border-box;
+  letter-spacing: -0.5px;
+}
+
+html {
+  scroll-behavior: auto;
+}
+
+h1 {
+  font-family: "Retcaro", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-family: "Sentient", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+@keyframes scrollPulse {
+  0% {
+    transform: scaleY(0);
+    transform-origin: top;
+    opacity: 1;
+  }
+  60% {
+    transform: scaleY(1);
+    transform-origin: top;
+    opacity: 1;
+  }
+  100% {
+    transform: scaleY(1);
+    transform-origin: bottom;
+    opacity: 0;
+  }
+}
+
+.scroll-indicator-line {
+  width: 1px;
+  height: 40px;
+  background-color: var(--wine);
+  animation: scrollPulse 2s ease-in-out infinite;
+}
+
+.btn-ghost {
+  position: relative;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.btn-ghost::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: var(--ink);
+  transform: translateX(-101%);
+  transition: transform 0.35s ease;
+  z-index: -1;
+}
+
+.btn-ghost:hover::before {
+  transform: translateX(0);
+}
+
+.btn-ghost:hover {
+  color: var(--cream);
+  border-color: var(--ink);
+}
+
+.editorial-image-wrap {
+  overflow: hidden;
+}
+
+.editorial-image-wrap img {
+  transition: transform 0.6s ease;
+}
+
+.editorial-image-wrap:hover img {
+  transform: scale(1.03);
+}
