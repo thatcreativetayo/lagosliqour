@@ -19,7 +19,7 @@ export default function LikeButton({ wineId, className = "" }: LikeButtonProps) 
       aria-label={active ? "Remove from liked wines" : "Save wine"}
       aria-pressed={active}
       onClick={() => (active ? liked.unlikeWine(wineId) : liked.likeWine(wineId))}
-      className={`border border-wine text-wine hover:bg-wine hover:text-cream transition-all duration-300 p-2.5 cursor-pointer ${active ? "bg-wine text-cream" : ""} ${className}`}
+      className={`border border-wine text-wine hover:bg-wine hover:text-cream transition-all duration-300 p-2.5 cursor-pointer ${active ? " text-cream" : ""} ${className}`}
     >
       <HugeiconsIcon
         icon={FavouriteIcon}
