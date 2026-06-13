@@ -34,12 +34,21 @@ export async function sanityFetch<T>({
     }
   }
 
+  console.log(`[Sanity] Fetching from: ${url.toString()}`);
+
+  const headers: HeadersInit = {};
+  
+  // Add token for authenticated requests if available
+  const token = process.env.NEXT_PUBLIC_SANITY_API_WRITE_TOKEN;
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const response = await fetch(url, { 
     next: { revalidate: 0 },
-    cache: 'no-store'
+    cache: 'no-store',
+    headers
   });
-
-  console.log(`[Sanity] Fetching from: ${url.toString()}`);
 
   if (!response.ok) {
     const errorText = await response.text();
