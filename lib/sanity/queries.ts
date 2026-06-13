@@ -53,8 +53,8 @@ const wineDetailFields = groq`
 
 export function getAllWines(categorySlug?: string) {
   const query = categorySlug
-    ? groq`*[_type == "wine" && category->slug.current == $categorySlug] | order(title asc) {${wineCardFields}}`
-    : groq`*[_type == "wine"] | order(title asc) {${wineCardFields}}`;
+    ? groq`*[_type == "wine" && category->slug.current == $categorySlug && !(_id in path("drafts.**"))] | order(title asc) {${wineCardFields}}`
+    : groq`*[_type == "wine" && !(_id in path("drafts.**"))] | order(title asc) {${wineCardFields}}`;
 
   return sanityFetch<WineCardResult[]>({
     query,

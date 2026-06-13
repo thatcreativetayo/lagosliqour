@@ -14,8 +14,14 @@ export const metadata: Metadata = {
 };
 
 export default async function Home() {
-  const featured = await getFeaturedWines();
-  const products = featured.length ? featured : await getAllWines();
-
-  return <PremiumLanding products={products} />;
+  try {
+    const featured = await getFeaturedWines();
+    const products = featured.length ? featured : await getAllWines();
+    
+    return <PremiumLanding products={products} />;
+  } catch (error) {
+    console.error("Failed to fetch wines:", error);
+    // Return component with empty products array - will use fallback products
+    return <PremiumLanding products={[]} />;
+  }
 }

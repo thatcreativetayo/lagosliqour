@@ -7,8 +7,13 @@ export const metadata = {
 };
 
 export default async function ShopPage() {
-  const wines = await getAllWines();
-  const categories = await getCategories();
+  try {
+    const wines = await getAllWines();
+    const categories = await getCategories();
 
-  return <ShopClient wines={wines} categories={categories} />;
+    return <ShopClient wines={wines} categories={categories} />;
+  } catch (error) {
+    console.error("Failed to fetch wines:", error);
+    return <ShopClient wines={[]} categories={[]} />;
+  }
 }

@@ -2,7 +2,7 @@ import type { SanityImage } from "./types";
 
 const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
 const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET ?? "production";
-const apiVersion = process.env.NEXT_PUBLIC_SANITY_API_VERSION ?? "2026-06-09";
+const apiVersion = process.env.NEXT_PUBLIC_SANITY_API_VERSION ?? "2024-06-09";
 
 type SanityParams = Record<string, string | number | boolean | string[] | undefined>;
 
@@ -34,13 +34,21 @@ export async function sanityFetch<T>({
     }
   }
 
-  const response = await fetch(url, { next: { revalidate } });
+  const response = await fetch(url, { 
+    next: { revalidate: 0 },
+    cache: 'no-store'
+  });
+
+  console.log(`[Sanity] Fetching from: ${url.toString()}`);
 
   if (!response.ok) {
+    const errorText = await response.text();
+    console.error(`[Sanity] Failed:`, response.status, errorText);
     throw new Error(`Sanity request failed: ${response.status}`);
   }
 
   const payload = (await response.json()) as { result: T };
+  console.log(`[Sanity] Got ${Array.isArray(payload.result) ? payload.result.length : 'non-array'} results from dataset: ${dataset}`);
   return payload.result;
 }
 
