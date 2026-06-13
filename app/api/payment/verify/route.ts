@@ -3,6 +3,12 @@ import { supabaseServer } from "@/lib/supabase/server";
 
 export async function GET(request: Request) {
   try {
+    // Validate environment variables at runtime
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.error("Missing Supabase configuration");
+      return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
+    }
+
     const { searchParams } = new URL(request.url);
     const reference = searchParams.get("reference");
 

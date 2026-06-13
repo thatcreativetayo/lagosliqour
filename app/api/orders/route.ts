@@ -20,6 +20,12 @@ export interface CreateOrderRequest {
 
 export async function POST(request: Request) {
   try {
+    // Validate environment variables at runtime
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.error("Missing Supabase configuration");
+      return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
+    }
+
     const body = (await request.json()) as CreateOrderRequest;
 
     const reference = nanoid(16);
