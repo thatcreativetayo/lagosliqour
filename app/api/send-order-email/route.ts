@@ -2,7 +2,14 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import type { CartItem } from "@/lib/stores/cart";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy initialization to avoid build-time errors
+let resend: Resend | null = null;
+function getResend() {
+  if (!resend) {
+    resend = new Resend(process.env.RESEND_API_KEY || "placeholder-key");
+  }
+  return resend;
+}
 
 interface OrderEmailData {
   reference: string;
@@ -207,7 +214,15 @@ function generateOrderEmailHTML(order: OrderEmailData): string {
 
 export async function POST(request: Request) {
   try {
+    // Validate environment at runtime
+    if (!process.env.RESEND_API_KEY) {
+      console.error("RESEND_API_KEY not configured");
+      return NextResponse.json({ error: "Email service unavailable" }, { status: 503 });
+    }
+
     const orderData: OrderEmailData = await request.json();
+
+    const resend = getResend();
 
     // Send to customer
     await resend.emails.send({

@@ -2,7 +2,14 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import type { CartItem } from "@/lib/stores/cart";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy initialization to avoid build-time errors
+let resend: Resend | null = null;
+function getResend() {
+  if (!resend) {
+    resend = new Resend(process.env.RESEND_API_KEY || "placeholder-key");
+  }
+  return resend;
+}
 
 interface OrderConfirmationData {
   reference: string;
@@ -179,6 +186,8 @@ export async function POST(request: Request) {
         { status: 500 }
       );
     }
+
+    const resend = getResend();
 
     // Send to customer
     await resend.emails.send({
