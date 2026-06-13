@@ -19,16 +19,7 @@ const nextConfig: NextConfig = {
         hostname: "cdn.sanity.io",
       },
     ],
-    dangerouslyAllowSVG: true,
-    contentDispositionType: 'attachment',
-    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
-  // Allow Sanity CDN in development
-  ...(process.env.NODE_ENV === 'development' && {
-    experimental: {
-      allowedOrigins: ['cdn.sanity.io'],
-    },
-  }),
 };
 
 export default nextConfig;

@@ -59,50 +59,50 @@ export default function ProductCard({ product, priority = false, dark = false }:
   return (
     <m.article
       {...fadeUp}
-      className={`group flex min-h-[430px] flex-col justify-between border p-4 transition-colors duration-500 sm:p-5 ${
+      className={`group flex min-h-[380px] sm:min-h-[430px] flex-col justify-between border p-3 sm:p-4 md:p-5 transition-colors duration-500 ${
         dark ? "border-white/10 bg-white/[0.04] text-cream" : "border-wine/10 bg-[#F8F4EA] text-ink"
       }`}
       style={{ backgroundImage: `linear-gradient(145deg, ${withAlpha(accent, "28")}, transparent 52%)` }}
     >
       <Link href={`/wines/${product.slug}`} className="relative flex aspect-[4/5] items-center justify-center overflow-hidden">
-        <div className="absolute inset-x-8 bottom-8 h-20 blur-3xl" style={{ backgroundColor: accent, opacity: 0.3 }} />
+        <div className="absolute inset-x-6 sm:inset-x-8 bottom-6 sm:bottom-8 h-16 sm:h-20 blur-3xl" style={{ backgroundColor: accent, opacity: 0.3 }} />
         <Image
           src={image}
           alt={product.image?.alt || product.title}
           width={520}
           height={720}
           priority={priority}
-          className="relative z-10 h-full w-full object-contain p-4 transition-transform duration-700 group-hover:-translate-y-2 group-hover:scale-105"
+          className="relative z-10 h-full w-full object-contain p-3 sm:p-4 transition-transform duration-700 group-hover:-translate-y-2 group-hover:scale-105"
         />
       </Link>
 
-      <div className="mt-4 flex flex-col gap-4">
+      <div className="mt-3 sm:mt-4 flex flex-col gap-3 sm:gap-4">
         <div>
-          <div className={`mb-2 flex items-center justify-between gap-3 text-[11px] uppercase ${dark ? "text-cream/45" : "text-wine/55"}`}>
+          <div className={`mb-1.5 sm:mb-2 flex items-center justify-between gap-2 sm:gap-3 text-[10px] sm:text-[11px] uppercase ${dark ? "text-cream/45" : "text-wine/55"}`}>
             <span>{product.bottleSize}</span>
             <span>{product.abv ?? "40%"}</span>
           </div>
           <Link href={`/wines/${product.slug}`}>
-            <h3 className="font-serif text-2xl uppercase leading-tight">{product.title}</h3>
+            <h3 className="font-serif text-sm sm:text-lg md:text-xl lg:text-2xl uppercase leading-tight">{product.title}</h3>
           </Link>
-          <p className={`mt-2 text-sm ${dark ? "text-cream/55" : "text-ink/58"}`}>
+          <p className={`mt-1.5 sm:mt-2 text-xs sm:text-sm ${dark ? "text-cream/55" : "text-ink/58"}`}>
             {notes.join(" / ") || product.origin || product.region}
           </p>
         </div>
 
-        <div className="flex items-center justify-between gap-3">
-          <p className={`font-serif text-xl ${dark ? "text-gold" : "text-wine"}`}>{formatNaira(product.price)}</p>
+        <div className="flex items-center justify-between gap-2 sm:gap-3">
+          <p className={`font-serif text-sm sm:text-base md:text-lg lg:text-xl ${dark ? "text-gold" : "text-wine"}`}>{formatNaira(product.price)}</p>
           <button
             type="button"
             onClick={addToCart}
             disabled={!product.inStock}
-            className={`inline-flex h-10 w-10 items-center justify-center border transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+            className={`inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center border transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
               dark ? "border-gold/50 text-gold hover:bg-gold hover:text-ink" : "border-wine/35 text-wine hover:bg-wine hover:text-cream"
             }`}
             aria-label={`Add ${product.title} to cart`}
             title={`Add ${product.title} to cart`}
           >
-            <ShoppingBag size={18} />
+            <ShoppingBag size={16} className="sm:w-[18px] sm:h-[18px]" />
           </button>
         </div>
       </div>
