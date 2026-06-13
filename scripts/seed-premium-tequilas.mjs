@@ -16,7 +16,7 @@ if (!projectId || !token) {
   process.exit(1);
 }
 
-const categoryId = "wineCategory.tequila";
+const categoryId = "wineCategory.tequila";  
 
 const category = {
   _id: categoryId,
