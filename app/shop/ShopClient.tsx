@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import WineCard from "@/components/ui/WineCard";
+import ProductCard from "@/components/ui/ProductCard";
 import type { WineCardResult, SanityCategory } from "@/lib/sanity/types";
 
 interface ShopClientProps {
@@ -205,7 +205,7 @@ export default function ShopClient({ wines, categories }: ShopClientProps) {
             {filteredWines.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6 lg:gap-8">
                 {filteredWines.map((wine) => (
-                  <WineCard key={wine._id} wine={wine} />
+                  <ProductCard key={wine._id} product={wine} />
                 ))}
               </div>
             ) : (
