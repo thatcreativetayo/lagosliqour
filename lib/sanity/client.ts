@@ -20,7 +20,9 @@ export async function sanityFetch<T>({
   revalidate?: number;
 }): Promise<T> {
   if (!projectId) {
-    throw new Error("Missing NEXT_PUBLIC_SANITY_PROJECT_ID");
+    // During build without env vars, return empty result
+    console.warn("NEXT_PUBLIC_SANITY_PROJECT_ID not configured, returning empty data");
+    return [] as T;
   }
 
   const url = new URL(`https://${projectId}.api.sanity.io/v${apiVersion}/data/query/${dataset}`);
