@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import WineCard from "@/components/ui/WineCard";
+import ProductCard from "@/components/ui/ProductCard";
 import Button from "@/components/ui/Button";
 import { useLikedStore } from "@/lib/stores/liked";
 import { getLikedWines } from "@/lib/sanity/queries";
@@ -82,7 +82,7 @@ export default function LikedClient() {
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-6 lg:gap-8">
           {wines.map((wine) => (
-            <WineCard key={wine._id} wine={wine} />
+            <ProductCard key={wine._id} product={wine} />
           ))}
         </div>
       </div>

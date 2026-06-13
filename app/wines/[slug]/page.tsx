@@ -6,7 +6,7 @@ import ProductActions from "@/components/product/ProductActions";
 import ProductGallery, { type GalleryImage } from "@/components/product/ProductGallery";
 import LikeButton from "@/components/ui/LikeButton";
 import Tag from "@/components/ui/Tag";
-import WineCard from "@/components/ui/WineCard";
+import ProductCard from "@/components/ui/ProductCard";
 import { urlFor } from "@/lib/sanity/client";
 import { getAllWines, getWineBySlug } from "@/lib/sanity/queries";
 import type { SanityImage, WineDetailResult } from "@/lib/sanity/types";
@@ -205,7 +205,7 @@ export default async function WinePage({ params }: WinePageProps) {
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-6 lg:gap-8">
             {related.map((item) => (
-              <WineCard key={item._id} wine={item} />
+              <ProductCard key={item._id} product={item} />
             ))}
           </div>
         </section>
