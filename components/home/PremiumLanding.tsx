@@ -226,7 +226,7 @@ export default function PremiumLanding({ products }: PremiumLandingProps) {
             initial={{ opacity: 0, y: 26 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, ease }}
-            className="mx-auto text-center mt-16 lg:mt-0 font-serif text-[36px] sm:text-[56px] lg:text-[76px] z-10 font-normal uppercase leading-[0.92] sm:leading-[0.88] text-wine lg:px-4"
+            className="mx-auto text-center mt-24 lg:mt-0 font-serif text-[52px] sm:text-[56px] lg:text-[76px] z-10 font-normal uppercase leading-[0.92] sm:leading-[0.88] text-wine lg:px-4"
           >
             Raise Your Spirits with Every Sip.
           </m.h1>

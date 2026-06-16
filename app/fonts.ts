@@ -1,13 +1,13 @@
 import localFont from "next/font/local";
 
 export const retcaro = localFont({
-  src: "../public/Retcaro-Regular.ttf",
+  src: "../public/JTDouro-Serif-Light.ttf",
   variable: "--font-serif",
   display: "swap",
 });
 
 export const sentient = localFont({
-  src: "../public/Sentient-Regular.otf",
+  src: "../public/google.ttf",
   variable: "--font-sans",
   display: "swap",
 });
