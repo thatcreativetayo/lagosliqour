@@ -1,7 +1,7 @@
 import localFont from "next/font/local";
 
 export const retcaro = localFont({
-  src: "../public/JTDouro-Serif-Light.ttf",
+  src: "../public/Recoleta.otf",
   variable: "--font-serif",
   display: "swap",
 });

@@ -212,9 +212,9 @@ export default function PremiumLanding({ products }: PremiumLandingProps) {
     <main ref={rootRef} className="bg-cream text-ink">
       <section className="hero-section relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-cream sm:px-6">
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(109,27,26,0.08)_1px,transparent_1px),linear-gradient(180deg,rgba(109,27,26,0.06)_1px,transparent_1px)] bg-[size:96px_96px]" />
-        <div className="absolute -bottom-10 w-full h-220 -rotate-45 overflow-visible z-30 pointer-events-none hidden lg:block">
+        <div className="absolute -bottom-16 w-full h-220 -rotate-35 overflow-visible z-30 pointer-events-none hidden lg:block">
           <Image
-            src="/hero2.png"
+            src="/hero3.png"
             alt={heroProduct.image?.alt || heroProduct.title}
             fill
             className="object-contain"
@@ -226,10 +226,20 @@ export default function PremiumLanding({ products }: PremiumLandingProps) {
             initial={{ opacity: 0, y: 26 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, ease }}
-            className="mx-auto text-center mt-24 lg:mt-0 font-serif text-[52px] sm:text-[56px] lg:text-[76px] z-10 font-normal uppercase leading-[0.92] sm:leading-[0.88] text-wine lg:px-4"
+            className="mx-auto text-center mt-8 lg:mt-0 font-serif text-[44px] sm:text-[56px] lg:text-[76px] z-10 font-normal uppercase leading-[0.92] sm:leading-[0.88] text-wine lg:px-4"
           >
             Raise Your Spirits with Every Sip.
           </m.h1>
+
+             <m.img
+                  {...fadeUp}
+                  transition={{ duration: 0.9, delay: 0.4, ease }}
+                  src="/heromobile.png" 
+                  alt="Casamigos Lineup" 
+                  width={800} 
+                  height={800} 
+                  className="md:hidden absolute top-[45%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-[400px] z-10" 
+                />
 
           <div className="grid gap-6 sm:gap-8 h-auto lg:h-[85%] relative lg:absolute w-full px-4 sm:px-10 lg:px-24 lg:mt-auto">
             <div className="flex flex-wrap sm:flex-nowrap gap-3 sm:gap-4 justify-center sm:justify-start mt-auto border-t border-wine/20 pt-4 sm:pt-6 text-wine">
@@ -239,7 +249,7 @@ export default function PremiumLanding({ products }: PremiumLandingProps) {
                 ["100%", "Verified stock"],
               ].map(([value, label]) => (
                 <div key={value} className="text-center sm:text-left">
-                  <p className="font-serif text-2xl sm:text-3xl lg:text-4xl">{value}</p>
+                  <p className="font-sans text-2xl sm:text-3xl lg:text-4xl">{value}</p>
                   <p className="mt-0.5 sm:mt-1 text-xs uppercase text-wine/62">{label}</p>
                 </div>
               ))}

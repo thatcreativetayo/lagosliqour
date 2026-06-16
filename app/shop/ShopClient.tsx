@@ -1,18 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ProductCard from "@/components/ui/ProductCard";
 import type { WineCardResult, SanityCategory } from "@/lib/sanity/types";
 
 interface ShopClientProps {
   wines: WineCardResult[];
   categories: SanityCategory[];
+  initialCategory?: string;
 }
 
-export default function ShopClient({ wines, categories }: ShopClientProps) {
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+export default function ShopClient({ wines, categories, initialCategory }: ShopClientProps) {
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(initialCategory || null);
   const [priceRange, setPriceRange] = useState<string>("all");
   const [availability, setAvailability] = useState<string>("all");
+
+  useEffect(() => {
+    if (initialCategory) {
+      setSelectedCategory(initialCategory);
+    }
+  }, [initialCategory]);
 
   // Filter wines
   const filteredWines = wines.filter((wine) => {

@@ -3,7 +3,7 @@
 import { m, useScroll, useMotionValueEvent } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   ShoppingCart01Icon,
@@ -14,9 +14,10 @@ import {
 import Image from "next/image";
 import { useCartStore } from "@/lib/stores/cart";
 import { SignInButton, SignUpButton, UserButton, useUser } from "@clerk/nextjs";
+import { getCategories } from "@/lib/sanity/queries";
+import type { SanityCategory } from "@/lib/sanity/types";
 
 const navLinks = [
-  { href: "/shop", label: "Shop" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
@@ -24,7 +25,7 @@ const navLinks = [
 function Logo() {
   return (
     <Link href="/" className="flex flex-col items-center gap-1.5 group">
-      <Image src="/logo.svg"alt="Logo" width={1000} height={1000} className="w-16 h-auto" />
+      <Image src="/logo.svg"alt="Logo" width={1000} height={1000} className="w-20 h-auto" />
     </Link>
   );
 }
@@ -34,9 +35,15 @@ export default function Navbar() {
   const isHome = pathname === "/";
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
+  const [categories, setCategories] = useState<SanityCategory[]>([]);
   const { scrollY } = useScroll();
   const cart = useCartStore();
   const { isSignedIn } = useUser();
+
+  useEffect(() => {
+    getCategories().then(setCategories);
+  }, []);
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     setScrolled(latest > 60);
@@ -82,7 +89,53 @@ export default function Navbar() {
         </button>
 
         {/* Desktop Nav Links */}
-        <div className="hidden lg:flex gap-6 sm:gap-8 justify-start">
+        <div className="hidden lg:flex gap-6 sm:gap-8 justify-start items-center">
+          <Link
+            href="/shop"
+            className={`nav-link text-ink hover:text-wine transititon-all duration-300 ${
+              pathname === "/shop" ? "active" : ""
+            }`}
+          >
+            Shop
+          </Link>
+          
+          {/* Categories Dropdown */}
+          <div 
+            className="relative"
+            onMouseEnter={() => setCategoriesOpen(true)}
+            onMouseLeave={() => setCategoriesOpen(false)}
+          >
+            <button
+              className={`nav-link text-ink hover:text-wine transititon-all duration-300 flex items-center gap-1 ${
+                pathname.startsWith("/shop?category=") ? "active" : ""
+              }`}
+            >
+              Categories
+              <svg 
+                className={`w-4 h-4 transition-transform duration-200 ${categoriesOpen ? "rotate-180" : ""}`} 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            
+            {categoriesOpen && categories.length > 0 && (
+              <div className="absolute top-full left-0 mt-2 w-48 bg-cream border border-wine/10 shadow-lg rounded-sm overflow-hidden">
+                {categories.map((category) => (
+                  <Link
+                    key={category._id}
+                    href={`/shop?category=${category.slug}`}
+                    className="block px-4 py-2.5 text-ink hover:bg-wine/5 hover:text-wine transition-colors text-sm"
+                  >
+                    {category.title}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
           {navLinks.map((link) => (
             <Link
               key={link.href}
@@ -149,6 +202,48 @@ export default function Navbar() {
       {mobileMenuOpen ? (
         <div className="lg:hidden bg-cream border-t border-wine/10">
           <div className="px-4 py-4 space-y-3">
+            <Link
+              href="/shop"
+              onClick={() => setMobileMenuOpen(false)}
+              className={`block py-2 text-ink hover:text-wine transition-colors ${
+                pathname === "/shop" ? "text-wine font-medium" : ""
+              }`}
+            >
+              Shop
+            </Link>
+            
+            {/* Mobile Categories */}
+            <div>
+              <button
+                onClick={() => setCategoriesOpen(!categoriesOpen)}
+                className="flex items-center justify-between w-full py-2 text-ink hover:text-wine transition-colors"
+              >
+                <span>Categories</span>
+                <svg 
+                  className={`w-4 h-4 transition-transform duration-200 ${categoriesOpen ? "rotate-180" : ""}`} 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {categoriesOpen && categories.length > 0 && (
+                <div className="pl-4 space-y-2 mt-2">
+                  {categories.map((category) => (
+                    <Link
+                      key={category._id}
+                      href={`/shop?category=${category.slug}`}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block py-1.5 text-ink/80 hover:text-wine transition-colors text-sm"
+                    >
+                      {category.title}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {navLinks.map((link) => (
               <Link
                 key={link.href}

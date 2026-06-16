@@ -19,29 +19,39 @@ export default function Hero() {
     <section
       className="relative h-screen flex flex-col justify-center items-center"
     >
+      {/* Desktop Hero Image */}
       <m.img
-      {...fadeUp}
-          transition={{ duration: 0.9, delay: 0.4, ease }}
-        src="/hero2.png" alt="Hero Image" width={1000} height={1000} className="-rotate-35 -bottom-16 w-[80%] absolute" />
+        {...fadeUp}
+        transition={{ duration: 0.9, delay: 0.4, ease }}
+        src="/hero2.png" 
+        alt="Hero Image" 
+        width={1000} 
+        height={1000} 
+        className="hidden md:block -rotate-35 -bottom-16 w-[80%] absolute" 
+      />
+      
+      {/* Mobile Hero Image */}
+   
+
       <div className="w-full justify-between flex flex-col h-full pt-16 mx-auto px-6 sm:px-10 lg:px-16 pb-12">
         <m.h1
           {...fadeUp}
           transition={{ duration: 0.9, delay: 0.4, ease }}
-          className="font-normal text-wine text-[96px] text-center"
+          className="font-normal text-wine text-4xl sm:text-6xl md:text-7xl lg:text-[96px] text-center"
         >
           Raise Your Spirits with Every Sip.
         </m.h1>
 
         <div className="flex flex-col z-40 w-full">
           <div className="w-full justify-end flex items-end">
-             <div className="w-fit flex items-start pb-40 flex-col gap-3">
-            <p className="text-dark w-md">Discover a curated collection of premium wines, whiskeys, and craft liqours delivered straight to your door.</p>
-            <button className="font-serif w-fit text-cream hover:bg-transparent border-2 border-wine hover:text-wine transition-all duration-300 cursor-pointer bg-wine py-2 px-4 text-lg uppercase">
+             <div className="w-fit flex items-start pb-20 md:pb-40 flex-col gap-3">
+            <p className="text-dark text-sm sm:text-base max-w-md">Discover a curated collection of premium wines, whiskeys, and craft liqours delivered straight to your door.</p>
+            <button className="font-serif w-fit text-cream hover:bg-transparent border-2 border-wine hover:text-wine transition-all duration-300 cursor-pointer bg-wine py-2 px-4 text-base md:text-lg uppercase">
               Explore collection
             </button>
           </div>
           </div>
-          <div className="flex gap-12 items-center">
+          <div className="hidden md:flex gap-12 items-center">
             <div className="flex h-fit items-center gap-6">
               <div className="flex flex-col h-fit text-left gap-3">
                  <h1 className="text-5xl text-wine">500+</h1>
