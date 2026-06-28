@@ -84,7 +84,6 @@ export function getCategories() {
 export function getAllWinesForSearch() {
   return sanityFetch<WineCardResult[]>({
     query: groq`*[_type == "wine" && !(_id in path("drafts.**"))] | order(title asc) {${wineCardFields}}`,
-    tags: ["wines"],
   });
 }
 

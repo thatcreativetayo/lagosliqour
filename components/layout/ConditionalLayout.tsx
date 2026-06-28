@@ -5,6 +5,7 @@ import Navbar from "./Navbar";
 import Footer from "./Footer";
 import NewsletterModal from "../home/NewsletterModal";
 import AgeVerificationModal from "./AgeVerificationModal";
+import WhatsAppFloat from "../ui/WhatsAppFloat";
 import SmoothScroll from "../providers/SmoothScroll";
 
 export default function ConditionalLayout({ children }: { children: React.ReactNode }) {
@@ -23,6 +24,7 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
       <Footer />
       <NewsletterModal />
       <AgeVerificationModal />
+      <WhatsAppFloat />
     </>
   );
 }
