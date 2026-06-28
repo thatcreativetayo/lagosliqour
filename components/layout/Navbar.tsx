@@ -345,6 +345,7 @@ export default function Navbar() {
               )}
             </div>
           </m.div>
+        </>
         )}
       </AnimatePresence>
     </m.header>
