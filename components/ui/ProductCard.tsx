@@ -64,7 +64,7 @@ export default function ProductCard({ product, priority = false, dark = false }:
   }
 
   const hasDiscount = product.comparePrice && product.comparePrice > product.price;
-  const discountPercent = hasDiscount
+  const discountPercent = hasDiscount && product.comparePrice
     ? Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)
     : 0;
 
