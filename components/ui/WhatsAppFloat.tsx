@@ -2,10 +2,11 @@
 
 import { m } from "framer-motion";
 
-const WHATSAPP_NUMBER = "2348067377151"; // 08067377151 in international format
+const WHATSAPP_NUMBER = "2348083703793"; // +234 808 370 3793 in international format
+const PRECOMPOSED_MESSAGE = encodeURIComponent("Hi Lagos Liquor, I'm interested in your products. Can you help me?");
 
 export default function WhatsAppFloat() {
-  const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}`;
+  const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${PRECOMPOSED_MESSAGE}`;
 
   return (
     <m.a
