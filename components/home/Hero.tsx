@@ -9,8 +9,8 @@ import {
 } from "@hugeicons/core-free-icons";
 
 const messages = [
-  "100% Authentic Imported Bottles.",
-  "Free Same-Day Delivery in some part of Lagos.",
+  { text: "100 Authentic Imported Bottles.", symbol: "%" },
+  { text: "Free Same-Day Delivery in some part of Lagos.", symbol: null },
 ];
 
 const ease = [0.25, 0.1, 0.25, 1] as const;
@@ -33,7 +33,7 @@ export default function Hero() {
         initial={{ opacity: 0, rotate: -35 }}
         animate={{ opacity: 1, rotate: -35 }}
         transition={{ duration: 1.2, delay: 0.6, ease }}
-        src="/hero2.png"
+        src="/hero3.png"
         alt="Hero Image"
         width={1000}
         height={1000}
@@ -50,9 +50,12 @@ export default function Hero() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 60 }}
               transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
-              className="font-semibold text-wine text-xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-center leading-tight"
+              className="text-wine text-xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-center leading-tight"
             >
-              {messages[currentIndex]}
+              <span className="font-head">{messages[currentIndex].text}</span>
+              {messages[currentIndex].symbol && (
+                <span className="font-sans">{messages[currentIndex].symbol}</span>
+              )}
             </m.h1>
           </AnimatePresence>
         </div>
