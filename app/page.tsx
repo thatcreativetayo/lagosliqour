@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import Hero from "@/components/home/Hero";
 import PremiumLanding from "@/components/home/PremiumLanding";
-import { getAllWines, getFeaturedWines } from "@/lib/sanity/queries";
+import { getAllWines, getFeaturedWines, getCategories } from "@/lib/sanity/queries";
 
 export const metadata: Metadata = {
   title: "Lagos Liqour | Premium Wine & Spirits Delivery in Lagos",
@@ -31,13 +32,15 @@ export const metadata: Metadata = {
 
 export default async function Home() {
   try {
-    const featured = await getFeaturedWines();
+    const [featured, categories] = await Promise.all([
+      getFeaturedWines(),
+      getCategories(),
+    ]);
     const products = featured.length ? featured : await getAllWines();
-    
-    return <PremiumLanding products={products} />;
+
+    return <PremiumLanding products={products} categories={categories} />;
   } catch (error) {
     console.error("Failed to fetch wines:", error);
-    // Return component with empty products array - will use fallback products
-    return <PremiumLanding products={[]} />;
+    return <PremiumLanding products={[]} categories={[]} />;
   }
 }

@@ -26,7 +26,14 @@ const navLinks = [
 function Logo() {
   return (
     <Link href="/" className="flex flex-col items-center gap-1.5 group">
-      <Image src="/logo.svg"alt="Logo" width={1000} height={1000} className="w-14 sm:w-16 lg:w-20 h-auto" />
+      <Image
+        src="/logo.svg"
+        alt="Logo"
+        width={1000}
+        height={1000}
+        className="w-14 sm:w-16 lg:w-20 h-auto filter drop-shadow-sm"
+        style={{ filter: 'contrast(1.1) brightness(1.05)' }}
+      />
     </Link>
   );
 }
@@ -225,13 +232,21 @@ export default function Navbar() {
       {/* Mobile Menu */}
       <AnimatePresence>
         {mobileMenuOpen && (
-          <m.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="lg:hidden bg-cream border-t border-wine/10 overflow-hidden"
-          >
+          <>
+            <m.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-ink/60 backdrop-blur-sm z-40 lg:hidden"
+              onClick={() => setMobileMenuOpen(false)}
+            />
+            <m.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="lg:hidden bg-cream border-t border-wine/10 overflow-y-auto max-h-[85vh] z-50 relative"
+            >
             <div className="px-4 py-4 space-y-3">
               <Link
                 href="/shop"

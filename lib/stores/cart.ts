@@ -10,6 +10,7 @@ export interface CartItem {
   quantity: number;
   unitPrice: number;
   lineTotal: number;
+  packSize?: number; // 1 for single, 6 for pack
 }
 
 interface CartState {
@@ -35,7 +36,7 @@ function getSnapshot(): CartState {
     }
     isInitialized = true;
   }
-  
+
   return snapshot;
 }
 
@@ -55,13 +56,23 @@ function subscribe(listener: () => void) {
   return () => listeners.delete(listener);
 }
 
+// Helper to generate a unique cart item ID
+function getCartItemUniqueId(item: Omit<CartItem, "lineTotal">): string {
+  return `${item.wineId}-${item.packSize || 1}`;
+}
+
 export function addCartItem(item: Omit<CartItem, "lineTotal">) {
   const state = getSnapshot();
-  const existing = state.items.find((cartItem) => cartItem.wineId === item.wineId);
+  const uniqueId = getCartItemUniqueId(item);
+
+  // Check if exact same item (same wineId and packSize) exists
+  const existing = state.items.find(
+    (cartItem) => cartItem.wineId === item.wineId && cartItem.packSize === item.packSize
+  );
 
   const items = existing
     ? state.items.map((cartItem) =>
-        cartItem.wineId === item.wineId
+        getCartItemUniqueId(cartItem) === uniqueId
           ? {
               ...cartItem,
               quantity: cartItem.quantity + item.quantity,
@@ -74,19 +85,27 @@ export function addCartItem(item: Omit<CartItem, "lineTotal">) {
   writeCart({ items });
 }
 
-export function removeCartItem(wineId: string) {
+export function removeCartItem(uniqueId: string) {
   const state = getSnapshot();
-  const items = state.items.filter((item) => item.wineId !== wineId);
+  const items = state.items.filter((item) => getCartItemUniqueId(item) !== uniqueId);
   writeCart({ items });
 }
 
-export function updateCartItemQuantity(wineId: string, quantity: number) {
+export function updateCartItemQuantity(uniqueId: string, quantity: number) {
   const state = getSnapshot();
-  const items = state.items.map((item) =>
-    item.wineId === wineId
-      ? { ...item, quantity, lineTotal: quantity * item.unitPrice }
-      : item
-  );
+  const items = state.items
+    .map((item) => {
+      if (getCartItemUniqueId(item) === uniqueId) {
+        return {
+          ...item,
+          quantity,
+          lineTotal: quantity * item.unitPrice,
+        };
+      }
+      return item;
+    })
+    .filter((item) => item.quantity > 0);
+
   writeCart({ items });
 }
 
@@ -100,13 +119,24 @@ export function useCartStore() {
   const subtotal = state.items.reduce((sum, item) => sum + item.lineTotal, 0);
   const count = state.items.reduce((sum, item) => sum + item.quantity, 0);
 
+  // Group items by wineId to show distinct products
+  const groupedItems = state.items.reduce((acc, item) => {
+    if (!acc[item.wineId]) {
+      acc[item.wineId] = [];
+    }
+    acc[item.wineId].push(item);
+    return acc;
+  }, {} as Record<string, CartItem[]>);
+
   return {
     items: state.items,
+    groupedItems,
     subtotal,
     count,
     addItem: addCartItem,
     removeItem: removeCartItem,
     updateQuantity: updateCartItemQuantity,
     clearCart,
+    getCartItemUniqueId,
   };
 }

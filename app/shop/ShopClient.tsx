@@ -16,6 +16,7 @@ export default function ShopClient({ wines, categories, initialCategory, initial
   const [priceRange, setPriceRange] = useState<string>("all");
   const [availability, setAvailability] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>(initialQuery || "");
+  const [sortBy, setSortBy] = useState<string>("featured");
 
   useEffect(() => {
     if (initialCategory) {
@@ -53,6 +54,22 @@ export default function ShopClient({ wines, categories, initialCategory, initial
     if (availability === "low-stock" && (wine.stockCount || 99) >= 10) return false;
 
     return true;
+  });
+
+  // Sort wines
+  const sortedWines = [...filteredWines].sort((a, b) => {
+    switch (sortBy) {
+      case "price-low":
+        return a.price - b.price;
+      case "price-high":
+        return b.price - a.price;
+      case "name":
+        return a.title.localeCompare(b.title);
+      case "newest":
+        return (b.vintage || 0) - (a.vintage || 0);
+      default:
+        return 0;
+    }
   });
 
   return (
@@ -102,6 +119,7 @@ export default function ShopClient({ wines, categories, initialCategory, initial
                   setSelectedCategory(null);
                   setPriceRange("all");
                   setAvailability("all");
+                  setSortBy("featured");
                 }}
                 className="text-xs text-wine underline"
               >
@@ -114,6 +132,21 @@ export default function ShopClient({ wines, categories, initialCategory, initial
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 lg:gap-16">
           {/* Filter Sidebar */}
           <aside className="space-y-6 lg:space-y-8">
+            {/* Sort - Mobile */}
+            <div className="lg:hidden">
+              <label className="text-xs uppercase text-wine/70 block mb-2">Sort by</label>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="w-full border-2 border-wine/20 bg-transparent px-3 py-2 text-sm focus:border-wine focus:outline-none"
+              >
+                <option value="featured">Featured</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
+                <option value="name">Name: A to Z</option>
+                <option value="newest">Newest First</option>
+              </select>
+            </div>
             {/* Search Bar - Desktop Only */}
             <div className="hidden lg:block">
               <h3 className="text-base sm:text-lg font-normal text-ink uppercase mb-3 sm:mb-4 border-b border-wine/20 pb-2">
@@ -292,16 +325,61 @@ export default function ShopClient({ wines, categories, initialCategory, initial
                 Clear All Filters
               </button>
             ) : null}
+
+            {/* Sort - Desktop */}
+            <div className="hidden lg:block">
+              <h3 className="text-base sm:text-lg font-normal text-ink uppercase mb-3 sm:mb-4 border-b border-wine/20 pb-2">
+                Sort by
+              </h3>
+              <div className="space-y-1.5 sm:space-y-2">
+                {[
+                  { value: "featured", label: "Featured" },
+                  { value: "price-low", label: "Price: Low to High" },
+                  { value: "price-high", label: "Price: High to Low" },
+                  { value: "name", label: "Name: A to Z" },
+                  { value: "newest", label: "Newest First" },
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setSortBy(option.value)}
+                    className={`block w-full text-left px-3 py-2 text-sm transition-colors ${
+                      sortBy === option.value
+                        ? "bg-wine text-cream"
+                        : "text-dark hover:bg-wine/5"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </aside>
 
           {/* Products Grid */}
           <div>
-            <p className="text-xs sm:text-sm text-ink/60 mb-4 sm:mb-6">
-              Showing {filteredWines.length} of {wines.length} wines
-            </p>
-            {filteredWines.length > 0 ? (
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
+              <p className="text-xs sm:text-sm text-ink/60">
+                Showing {sortedWines.length} of {wines.length} wines
+              </p>
+              {/* Sort - Desktop Dropdown */}
+              <div className="hidden lg:block">
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="border-2 border-wine/20 bg-transparent px-3 py-2 text-sm focus:border-wine focus:outline-none"
+                >
+                  <option value="featured">Featured</option>
+                  <option value="price-low">Price: Low to High</option>
+                  <option value="price-high">Price: High to Low</option>
+                  <option value="name">Name: A to Z</option>
+                  <option value="newest">Newest First</option>
+                </select>
+              </div>
+            </div>
+            {sortedWines.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6 lg:gap-8">
-                {filteredWines.map((wine) => (
+                {sortedWines.map((wine) => (
                   <ProductCard key={wine._id} product={wine} />
                 ))}
               </div>

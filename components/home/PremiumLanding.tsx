@@ -17,12 +17,14 @@ import {
   Sparkle,
   Truck,
 } from "@phosphor-icons/react";
+import Hero from "./Hero";
 import { urlFor } from "@/lib/sanity/client";
-import type { WineCardResult } from "@/lib/sanity/types";
+import type { WineCardResult, SanityCategory } from "@/lib/sanity/types";
 import { useCartStore } from "@/lib/stores/cart";
 
 interface PremiumLandingProps {
   products: WineCardResult[];
+  categories?: SanityCategory[];
 }
 
 const ease = [0.25, 0.1, 0.25, 1] as const;
@@ -162,7 +164,7 @@ function ProductCard({ product, priority = false, dark = false }: { product: Win
   );
 }
 
-export default function PremiumLanding({ products }: PremiumLandingProps) {
+export default function PremiumLanding({ products, categories = [] }: PremiumLandingProps) {
   const collection = products.length ? products : fallbackProducts;
   const heroProduct = collection.find((product) => product.title.toLowerCase().includes("1942")) ?? collection[0];
   const casamigos = collection.filter((product) => product.title.toLowerCase().includes("casamigos"));
@@ -210,66 +212,63 @@ export default function PremiumLanding({ products }: PremiumLandingProps) {
 
   return (
     <main ref={rootRef} className="bg-cream text-ink">
-      <section className="hero-section relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-cream sm:px-6">
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(109,27,26,0.08)_1px,transparent_1px),linear-gradient(180deg,rgba(109,27,26,0.06)_1px,transparent_1px)] bg-[size:96px_96px]" />
-        <div className="absolute -bottom-16 w-full h-220 -rotate-35 overflow-visible z-30 pointer-events-none hidden lg:block">
-          <Image
-            src="/hero3.png"
-            alt={heroProduct.image?.alt || heroProduct.title}
-            fill
-            className="object-contain"
-          />
-        </div>
+      <Hero />
 
-        <div className="relative z-20 flex min-h-screen w-full flex-col justify-between pb-8 sm:pb-10 pt-16 sm:pt-20">
-          <m.h1
-            initial={{ opacity: 0, y: 26 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, ease }}
-            className="mx-auto text-center mt-8 lg:mt-0 font-serif text-[44px] sm:text-[56px] lg:text-[76px] z-10 font-normal uppercase leading-[0.92] sm:leading-[0.88] text-wine lg:px-4"
-          >
-            Raise Your Spirits with Every Sip.
-          </m.h1>
-
-             <m.img
-                  {...fadeUp}
-                  transition={{ duration: 0.9, delay: 0.4, ease }}
-                  src="/heromobile.png" 
-                  alt="Casamigos Lineup" 
-                  width={800} 
-                  height={800} 
-                  className="md:hidden absolute top-[45%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-[400px] z-10" 
-                />
-
-          <div className="grid gap-6 sm:gap-8 h-auto lg:h-[85%] relative lg:absolute w-full px-4 sm:px-10 lg:px-24 lg:mt-auto">
-            <div className="flex flex-wrap sm:flex-nowrap gap-3 sm:gap-4 justify-center sm:justify-start mt-auto border-t border-wine/20 pt-4 sm:pt-6 text-wine">
-              {[
-                ["500+", "Premium bottles"],
-                ["24/7", "Lagos dispatch"],
-                ["100%", "Verified stock"],
-              ].map(([value, label]) => (
-                <div key={value} className="text-center sm:text-left">
-                  <p className="font-sans text-2xl sm:text-3xl lg:text-4xl">{value}</p>
-                  <p className="mt-0.5 sm:mt-1 text-xs uppercase text-wine/62">{label}</p>
+      {/* Trust Badges & Delivery Info */}
+      <section className="bg-cream border-y border-wine/10 py-6 sm:py-8">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-16">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
+            {[
+              { icon: Truck, title: "Free Delivery", desc: "Across Lagos" },
+              { icon: ShieldCheck, title: "Verified", desc: "100% Authentic" },
+              { icon: CreditCard, title: "Secure", desc: "Safe Payment" },
+              { icon: CheckCircle, title: "Fast Dispatch", desc: "24/7 Service" },
+            ].map((item) => (
+              <div key={item.title} className="flex items-center gap-3">
+                <item.icon size={24} className="text-wine flex-shrink-0" />
+                <div>
+                  <p className="font-semibold text-sm text-ink">{item.title}</p>
+                  <p className="text-xs text-ink/60">{item.desc}</p>
                 </div>
-              ))}
-            </div>
-            <m.div
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.25, ease }}
-              className="max-w-sm mx-auto sm:mx-0 lg:absolute lg:right-6 lg:bottom-0"
-            >
-              <p className="text-sm sm:text-base leading-6 text-ink/68 text-center sm:text-left">
-                Discover a curated collection of premium wines, whiskeys, and craft liquors delivered straight to your door.
-              </p>
-              <Link href="/shop" className="mt-4 sm:mt-5 inline-flex items-center gap-2 sm:gap-3 border-2 border-wine bg-wine px-4 sm:px-5 py-2.5 sm:py-3 font-serif text-sm uppercase text-cream transition-colors hover:bg-transparent hover:text-wine w-full sm:w-auto justify-center">
-                Explore collection <ArrowRight size={17} />
-              </Link>
-            </m.div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
+
+      {/* Categories Quick Links */}
+      {categories.length > 0 && (
+        <section className="py-10 sm:py-12 lg:py-16 bg-cream">
+          <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-16">
+            <m.div {...fadeUp} className="mb-6 sm:mb-8">
+              <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl uppercase text-ink">Shop by Category</h2>
+              <p className="mt-2 text-sm text-ink/60">Find your perfect drink</p>
+            </m.div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+              {categories.map((category, index) => (
+                <m.div
+                  key={category._id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1, duration: 0.4 }}
+                >
+                  <Link
+                    href={`/shop?category=${category.slug}`}
+                    className="group flex flex-col items-center gap-3 p-4 border border-wine/10 hover:border-wine/30 hover:bg-wine/5 transition-all duration-300 rounded-sm"
+                  >
+                    <div className="w-16 h-16 bg-wine/10 rounded-full flex items-center justify-center group-hover:bg-wine/20 transition-colors">
+                      <Sparkle size={24} className="text-wine" />
+                    </div>
+                    <p className="text-center text-sm font-medium text-ink group-hover:text-wine transition-colors">
+                      {category.title}
+                    </p>
+                  </Link>
+                </m.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       <div className="border-y border-wine/15 bg-[#F8F4EA] py-4 sm:py-5 overflow-hidden">
         <div className="mx-auto flex max-w-[1400px] gap-6 sm:gap-8 px-4 sm:px-6 lg:px-16 text-xs sm:text-sm uppercase text-wine/58 overflow-x-auto scrollbar-hide">
