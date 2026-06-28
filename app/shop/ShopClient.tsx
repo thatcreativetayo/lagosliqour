@@ -8,12 +8,14 @@ interface ShopClientProps {
   wines: WineCardResult[];
   categories: SanityCategory[];
   initialCategory?: string;
+  initialQuery?: string;
 }
 
-export default function ShopClient({ wines, categories, initialCategory }: ShopClientProps) {
+export default function ShopClient({ wines, categories, initialCategory, initialQuery }: ShopClientProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(initialCategory || null);
   const [priceRange, setPriceRange] = useState<string>("all");
   const [availability, setAvailability] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState<string>(initialQuery || "");
 
   useEffect(() => {
     if (initialCategory) {
@@ -23,6 +25,19 @@ export default function ShopClient({ wines, categories, initialCategory }: ShopC
 
   // Filter wines
   const filteredWines = wines.filter((wine) => {
+    // Search filter
+    if (searchQuery.trim()) {
+      const searchLower = searchQuery.toLowerCase();
+      const matchesSearch =
+        wine.title.toLowerCase().includes(searchLower) ||
+        wine.name?.toLowerCase().includes(searchLower) ||
+        wine.region.toLowerCase().includes(searchLower) ||
+        wine.category?.title.toLowerCase().includes(searchLower) ||
+        wine.tastingNotes?.some((note) => note.toLowerCase().includes(searchLower));
+
+      if (!matchesSearch) return false;
+    }
+
     // Category filter
     if (selectedCategory && wine.category?.slug !== selectedCategory) {
       return false;
@@ -53,9 +68,83 @@ export default function ShopClient({ wines, categories, initialCategory }: ShopC
           </p>
         </div>
 
+        {/* Search Bar - Mobile Only */}
+        <div className="mb-6 lg:hidden">
+          <div className="relative">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search wines..."
+              className="w-full border-2 border-wine/20 bg-transparent px-4 py-3 text-ink focus:border-wine focus:outline-none"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink/60 hover:text-wine"
+              >
+                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path d="M6 6l12 12M6 18L18 6" />
+                </svg>
+              </button>
+            )}
+          </div>
+          {(searchQuery || filteredWines.length !== wines.length) && (
+            <div className="mt-3 flex items-center gap-2">
+              <span className="text-xs text-ink/60">
+                {searchQuery ? `Searching for "${searchQuery}"` : "Filters applied"}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery("");
+                  setSelectedCategory(null);
+                  setPriceRange("all");
+                  setAvailability("all");
+                }}
+                className="text-xs text-wine underline"
+              >
+                Clear all
+              </button>
+            </div>
+          )}
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 lg:gap-16">
           {/* Filter Sidebar */}
           <aside className="space-y-6 lg:space-y-8">
+            {/* Search Bar - Desktop Only */}
+            <div className="hidden lg:block">
+              <h3 className="text-base sm:text-lg font-normal text-ink uppercase mb-3 sm:mb-4 border-b border-wine/20 pb-2">
+                Search
+              </h3>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search wines, regions..."
+                  className="w-full border-2 border-wine/20 bg-transparent px-4 py-2.5 pr-10 text-sm text-ink placeholder:text-ink/40 focus:border-wine focus:outline-none"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-ink/60 hover:text-wine"
+                  >
+                    <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path d="M6 6l12 12M6 18L18 6" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+              {searchQuery && (
+                <p className="mt-2 text-xs text-ink/60">
+                  Searching for "<span className="text-wine">{searchQuery}</span>"
+                </p>
+              )}
+            </div>
             {/* Category Filter */}
             <div>
               <h3 className="text-base sm:text-lg font-normal text-ink uppercase mb-3 sm:mb-4 border-b border-wine/20 pb-2">
@@ -189,13 +278,14 @@ export default function ShopClient({ wines, categories, initialCategory }: ShopC
             </div>
 
             {/* Clear Filters */}
-            {(selectedCategory || priceRange !== "all" || availability !== "all") ? (
+            {(selectedCategory || priceRange !== "all" || availability !== "all" || searchQuery) ? (
               <button
                 type="button"
                 onClick={() => {
                   setSelectedCategory(null);
                   setPriceRange("all");
                   setAvailability("all");
+                  setSearchQuery("");
                 }}
                 className="w-full border-2 border-wine text-wine py-2 hover:bg-wine hover:text-cream transition-all duration-300 text-sm uppercase"
               >

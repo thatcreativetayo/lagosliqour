@@ -7,8 +7,9 @@ import ProductGallery, { type GalleryImage } from "@/components/product/ProductG
 import LikeButton from "@/components/ui/LikeButton";
 import Tag from "@/components/ui/Tag";
 import ProductCard from "@/components/ui/ProductCard";
+import StructuredData, { productData, breadcrumbData } from "@/components/seo/StructuredData";
 import { urlFor } from "@/lib/sanity/client";
-import { getAllWines, getWineBySlug } from "@/lib/sanity/queries";
+import { getAllWines, getWineBySlug, getCategories } from "@/lib/sanity/queries";
 import type { SanityImage, WineDetailResult } from "@/lib/sanity/types";
 
 interface WinePageProps {
@@ -64,14 +65,34 @@ export async function generateMetadata({ params }: WinePageProps): Promise<Metad
   }
 
   const ogImage = imageUrl(wine.images[0], 1200);
+  const productUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://lagosliquor.com"}/wines/${wine.slug}`;
 
   return {
     title: `${wine.title} | Lagos Liquor`,
     description: wine.description,
+    keywords: [
+      wine.title,
+      wine.region,
+      wine.category?.title,
+      wine.grapeVariety,
+      "wine Nigeria",
+      "premium wine",
+      wine.tastingNotes?.join(", "),
+    ].filter(Boolean).join(", "),
     openGraph: {
       title: `${wine.title} | Lagos Liquor`,
       description: wine.description,
-      images: ogImage ? [{ url: ogImage, alt: wine.images[0]?.alt || wine.title }] : [],
+      url: productUrl,
+      images: ogImage ? [{ url: ogImage, width: 1200, height: 630, alt: wine.images[0]?.alt || wine.title }] : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${wine.title} | Lagos Liquor`,
+      description: wine.description,
+      images: ogImage ? [ogImage] : [],
+    },
+    alternates: {
+      canonical: productUrl,
     },
   };
 }
@@ -89,8 +110,28 @@ export default async function WinePage({ params }: WinePageProps) {
   const status = wine.inStock ? `${wine.stockCount ?? 0} in stock` : "Out of stock";
   const bgColor = wine.accentColor ? `${wine.accentColor}15` : "rgb(109 27 26 / 0.05)";
 
+  const productUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://lagosliquor.com"}/wines/${wine.slug}`;
+
+  const structuredData = productData({
+    title: wine.title,
+    description: wine.description,
+    price: wine.price,
+    image: images[0]?.src || "",
+    inStock: wine.inStock,
+  });
+
+  const breadcrumbSchema = breadcrumbData([
+    { name: "Home", url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://lagosliquor.com"}/` },
+    { name: "Shop", url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://lagosliquor.com"}/shop` },
+    { name: wine.category?.title || "Wines", url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://lagosliquor.com"}/shop?category=${wine.category?.slug}` },
+    { name: wine.title, url: productUrl },
+  ]);
+
   return (
-    <main className="bg-cream pt-20 sm:pt-24 pb-12 sm:pb-20">
+    <>
+      <StructuredData data={structuredData} />
+      <StructuredData data={breadcrumbSchema} />
+      <main className="bg-cream pt-20 sm:pt-24 pb-12 sm:pb-20">
       <section className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-16">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-16 items-start">
           <div className="lg:col-span-7">
@@ -211,5 +252,6 @@ export default async function WinePage({ params }: WinePageProps) {
         </section>
       ) : null}
     </main>
+    </>
   );
 }

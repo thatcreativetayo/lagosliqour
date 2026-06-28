@@ -1,6 +1,6 @@
 "use client";
 
-import { m, useScroll, useMotionValueEvent } from "framer-motion";
+import { m, useScroll, useMotionValueEvent, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -14,8 +14,9 @@ import {
 import Image from "next/image";
 import { useCartStore } from "@/lib/stores/cart";
 import { SignInButton, SignUpButton, UserButton, useUser } from "@clerk/nextjs";
-import { getCategories } from "@/lib/sanity/queries";
-import type { SanityCategory } from "@/lib/sanity/types";
+import { getCategories, getAllWinesForSearch } from "@/lib/sanity/queries";
+import SearchBar from "@/components/ui/SearchBar";
+import type { SanityCategory, WineCardResult } from "@/lib/sanity/types";
 
 const navLinks = [
   { href: "/about", label: "About" },
@@ -37,12 +38,15 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [categories, setCategories] = useState<SanityCategory[]>([]);
+  const [wines, setWines] = useState<WineCardResult[]>([]);
+  const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false);
   const { scrollY } = useScroll();
   const cart = useCartStore();
   const { isSignedIn } = useUser();
 
   useEffect(() => {
     getCategories().then(setCategories);
+    getAllWinesForSearch().then(setWines);
   }, []);
 
   useMotionValueEvent(scrollY, "change", (latest) => {
@@ -100,40 +104,47 @@ export default function Navbar() {
           </Link>
           
           {/* Categories Dropdown */}
-          <div 
-            className="relative"
-            onMouseEnter={() => setCategoriesOpen(true)}
-            onMouseLeave={() => setCategoriesOpen(false)}
-          >
+          <div className="relative">
             <button
+              type="button"
+              onClick={() => setCategoriesOpen(!categoriesOpen)}
               className={`nav-link text-ink hover:text-wine transititon-all duration-300 flex items-center gap-1 ${
                 pathname.startsWith("/shop?category=") ? "active" : ""
               }`}
             >
               Categories
-              <svg 
-                className={`w-4 h-4 transition-transform duration-200 ${categoriesOpen ? "rotate-180" : ""}`} 
-                fill="none" 
-                stroke="currentColor" 
+              <svg
+                className={`w-4 h-4 transition-transform duration-200 ${categoriesOpen ? "rotate-180" : ""}`}
+                fill="none"
+                stroke="currentColor"
                 viewBox="0 0 24 24"
               >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            
-            {categoriesOpen && categories.length > 0 && (
-              <div className="absolute top-full left-0 mt-2 w-48 bg-cream border border-wine/10 shadow-lg rounded-sm overflow-hidden">
-                {categories.map((category) => (
-                  <Link
-                    key={category._id}
-                    href={`/shop?category=${category.slug}`}
-                    className="block px-4 py-2.5 text-ink hover:bg-wine/5 hover:text-wine transition-colors text-sm"
-                  >
-                    {category.title}
-                  </Link>
-                ))}
-              </div>
-            )}
+
+            <AnimatePresence>
+              {categoriesOpen && categories.length > 0 && (
+                <m.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute top-full left-0 mt-2 w-48 bg-cream border border-wine/10 shadow-lg rounded-sm overflow-hidden z-50"
+                >
+                  {categories.map((category) => (
+                    <Link
+                      key={category._id}
+                      href={`/shop?category=${category.slug}`}
+                      onClick={() => setCategoriesOpen(false)}
+                      className="block px-4 py-2.5 text-ink hover:bg-wine/5 hover:text-wine transition-colors text-sm"
+                    >
+                      {category.title}
+                    </Link>
+                  ))}
+                </m.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {navLinks.map((link) => (
@@ -156,6 +167,7 @@ export default function Navbar() {
 
         {/* Right Icons */}
         <div className="flex gap-3 sm:gap-4 lg:gap-5 justify-end items-center">
+          <SearchBar wines={wines} />
           <Link href="/cart" aria-label="Cart" className="relative">
             <HugeiconsIcon icon={ShoppingCart01Icon} className={iconClass} />
             {cart.count > 0 ? (
@@ -215,32 +227,42 @@ export default function Navbar() {
             {/* Mobile Categories */}
             <div>
               <button
-                onClick={() => setCategoriesOpen(!categoriesOpen)}
+                type="button"
+                onClick={() => setMobileCategoriesOpen(!mobileCategoriesOpen)}
                 className="flex items-center justify-between w-full py-2 text-ink hover:text-wine transition-colors"
               >
                 <span>Categories</span>
-                <svg 
-                  className={`w-4 h-4 transition-transform duration-200 ${categoriesOpen ? "rotate-180" : ""}`} 
-                  fill="none" 
-                  stroke="currentColor" 
+                <svg
+                  className={`w-4 h-4 transition-transform duration-200 ${mobileCategoriesOpen ? "rotate-180" : ""}`}
+                  fill="none"
+                  stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              {categoriesOpen && categories.length > 0 && (
-                <div className="pl-4 space-y-2 mt-2">
+              {mobileCategoriesOpen && categories.length > 0 && (
+                <m.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="pl-4 space-y-2 mt-2 overflow-hidden"
+                >
                   {categories.map((category) => (
                     <Link
                       key={category._id}
                       href={`/shop?category=${category.slug}`}
-                      onClick={() => setMobileMenuOpen(false)}
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        setMobileCategoriesOpen(false);
+                      }}
                       className="block py-1.5 text-ink/80 hover:text-wine transition-colors text-sm"
                     >
                       {category.title}
                     </Link>
                   ))}
-                </div>
+                </m.div>
               )}
             </div>
 

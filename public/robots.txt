@@ -1,0 +1,14 @@
+# robots.txt for Lagos Liquor
+
+User-agent: *
+Allow: /
+
+# Disallow studio and API routes
+Disallow: /studio
+Disallow: /api/
+
+# Sitemap
+Sitemap: https://lagosliquor.com/sitemap.xml
+
+# Crawl delay (optional)
+Crawl-delay: 1

@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import NewsletterModal from "../home/NewsletterModal";
+import AgeVerificationModal from "./AgeVerificationModal";
 import SmoothScroll from "../providers/SmoothScroll";
 
 export default function ConditionalLayout({ children }: { children: React.ReactNode }) {
@@ -21,6 +22,7 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
       <div className="flex-1">{children}</div>
       <Footer />
       <NewsletterModal />
+      <AgeVerificationModal />
     </>
   );
 }
