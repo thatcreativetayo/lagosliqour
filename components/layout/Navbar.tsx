@@ -26,7 +26,7 @@ const navLinks = [
 function Logo() {
   return (
     <Link href="/" className="flex flex-col items-center gap-1.5 group">
-      <Image src="/logo.svg"alt="Logo" width={1000} height={1000} className="w-16 sm:w-20 h-auto" />
+      <Image src="/logo.svg"alt="Logo" width={1000} height={1000} className="w-14 sm:w-16 lg:w-20 h-auto" />
     </Link>
   );
 }
@@ -69,95 +69,115 @@ export default function Navbar() {
       }`}
     >
       <nav className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-16 h-[64px] sm:h-[72px]">
-        <div className="flex items-center justify-between h-full gap-3 sm:gap-4">
-          {/* Left: Logo + Nav Links */}
-          <div className="flex items-center gap-4 sm:gap-8">
-            {/* Logo */}
-            <div className="hidden lg:block">
-              <Logo />
-            </div>
+        <div className="flex items-center justify-between h-full gap-3">
+          {/* Mobile Menu Button */}
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="lg:hidden text-ink p-2 -ml-2"
+            aria-label="Toggle menu"
+          >
+            <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2">
+              {mobileMenuOpen ? (
+                <>
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </>
+              ) : (
+                <>
+                  <line x1="3" y1="12" x2="21" y2="12" />
+                  <line x1="3" y1="6" x2="21" y2="6" />
+                  <line x1="3" y1="18" x2="21" y2="18" />
+                </>
+              )}
+            </svg>
+          </button>
 
-            {/* Desktop Nav Links */}
-            <div className="hidden xl:flex gap-6 items-center">
-              <Link
-                href="/shop"
-                className={`text-sm text-ink hover:text-wine transition-colors ${
-                  pathname === "/shop" ? "text-wine" : ""
-                }`}
-              >
-                Shop
-              </Link>
-
-              {/* Categories Dropdown */}
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setCategoriesOpen(!categoriesOpen)}
-                  className={`text-sm text-ink hover:text-wine transition-colors flex items-center gap-1 ${
-                    pathname.startsWith("/shop?category=") ? "text-wine" : ""
-                  }`}
-                >
-                  Categories
-                  <svg
-                    className={`w-3 h-3 transition-transform duration-200 ${categoriesOpen ? "rotate-180" : ""}`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-
-                <AnimatePresence>
-                  {categoriesOpen && categories.length > 0 && (
-                    <m.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute top-full left-0 mt-2 w-48 bg-cream border border-wine/10 shadow-lg rounded-sm overflow-hidden z-50"
-                    >
-                      {categories.map((category) => (
-                        <Link
-                          key={category._id}
-                          href={`/shop?category=${category.slug}`}
-                          onClick={() => setCategoriesOpen(false)}
-                          className="block px-4 py-2.5 text-ink hover:bg-wine/5 hover:text-wine transition-colors text-sm"
-                        >
-                          {category.title}
-                        </Link>
-                      ))}
-                    </m.div>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`text-sm text-ink hover:text-wine transition-colors ${
-                    pathname === link.href ? "text-wine" : ""
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          {/* Mobile Logo */}
-          <div className="lg:hidden absolute left-1/2 -translate-x-1/2">
+          {/* Logo - Desktop */}
+          <div className="hidden lg:block">
             <Logo />
           </div>
 
-          {/* Center: Search Bar */}
-          <div className="flex-1 flex justify-center lg:justify-start max-w-md mx-auto lg:mx-0">
+          {/* Desktop Nav Links */}
+          <div className="hidden lg:flex gap-6 sm:gap-8 items-center">
+            <Link
+              href="/shop"
+              className={`text-sm text-ink hover:text-wine transition-colors ${
+                pathname === "/shop" ? "text-wine" : ""
+              }`}
+            >
+              Shop
+            </Link>
+
+            {/* Categories Dropdown */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setCategoriesOpen(!categoriesOpen)}
+                className={`text-sm text-ink hover:text-wine transition-colors flex items-center gap-1 ${
+                  pathname.startsWith("/shop?category=") ? "text-wine" : ""
+                }`}
+              >
+                Categories
+                <svg
+                  className={`w-3 h-3 transition-transform duration-200 ${categoriesOpen ? "rotate-180" : ""}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              <AnimatePresence>
+                {categoriesOpen && categories.length > 0 && (
+                  <m.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute top-full left-0 mt-2 w-48 bg-cream border border-wine/10 shadow-lg rounded-sm overflow-hidden z-50"
+                  >
+                    {categories.map((category) => (
+                      <Link
+                        key={category._id}
+                        href={`/shop?category=${category.slug}`}
+                        onClick={() => setCategoriesOpen(false)}
+                        className="block px-4 py-2.5 text-ink hover:bg-wine/5 hover:text-wine transition-colors text-sm"
+                      >
+                        {category.title}
+                      </Link>
+                    ))}
+                  </m.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`text-sm text-ink hover:text-wine transition-colors ${
+                  pathname === link.href ? "text-wine" : ""
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+
+          {/* Search Bar - Responsive */}
+          <div className="flex-1 flex justify-center lg:justify-start max-w-[200px] sm:max-w-[300px] md:max-w-[400px] lg:max-w-[350px] xl:max-w-[400px]">
             <SearchBar wines={wines} />
           </div>
 
-          {/* Right: Icons */}
-          <div className="flex items-center gap-2 sm:gap-4">
+          {/* Logo - Mobile */}
+          <div className="lg:hidden flex-shrink-0">
+            <Logo />
+          </div>
+
+          {/* Right Icons */}
+          <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
             <Link href="/cart" aria-label="Cart" className="relative">
               <HugeiconsIcon icon={ShoppingCart01Icon} className={iconClass} />
               {cart.count > 0 ? (
