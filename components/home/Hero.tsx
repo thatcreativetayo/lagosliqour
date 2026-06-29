@@ -9,8 +9,8 @@ import {
 } from "@hugeicons/core-free-icons";
 
 const messages = [
-  { text: "100 Authentic Imported Bottles.", symbol: "%" },
-  { text: "Free Same-Day Delivery in some part of Lagos.", symbol: null },
+  { prefix: "100", symbol: "%", text: " Authentic Imported Bottles." },
+  { text: "Free Same-Day Delivery in some part of Lagos." },
 ];
 
 const ease = [0.25, 0.1, 0.25, 1] as const;
@@ -28,6 +28,18 @@ export default function Hero() {
 
   return (
     <section className="relative h-screen flex flex-col justify-center items-center overflow-hidden">
+      {/* Mobile Hero Image */}
+      <m.img
+        initial={{ opacity: 0, rotate: -35 }}
+        animate={{ opacity: 1, rotate: -35 }}
+        transition={{ duration: 1.2, delay: 0.6, ease }}
+        src="/heromobile.png"
+        alt="Hero Image"
+        width={600}
+        height={600}
+        className="md:hidden -rotate-35 -bottom-16 w-[70%] absolute"
+      />
+
       {/* Desktop Hero Image */}
       <m.img
         initial={{ opacity: 0, rotate: -35 }}
@@ -52,9 +64,14 @@ export default function Hero() {
               transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
               className="text-wine text-xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-center leading-tight"
             >
-              <span className="font-head">{messages[currentIndex].text}</span>
-              {messages[currentIndex].symbol && (
-                <span className="font-sans">{messages[currentIndex].symbol}</span>
+              {"prefix" in messages[currentIndex] ? (
+                <>
+                  <span className="font-head">{messages[currentIndex].prefix}</span>
+                  <span className="font-sans">{messages[currentIndex].symbol}</span>
+                  <span className="font-head">{messages[currentIndex].text}</span>
+                </>
+              ) : (
+                <span className="font-head">{messages[currentIndex].text}</span>
               )}
             </m.h1>
           </AnimatePresence>
