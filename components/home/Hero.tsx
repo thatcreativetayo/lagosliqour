@@ -37,7 +37,7 @@ export default function Hero() {
         alt="Hero Image"
         width={600}
         height={600}
-        className="md:hidden bottom-32 w-[70%] absolute"
+        className="md:hidden bottom-64 w-[70%] absolute"
       />
 
       {/* Desktop Hero Image */}
