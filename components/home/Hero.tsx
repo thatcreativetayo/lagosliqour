@@ -42,8 +42,8 @@ export default function Hero() {
 
       {/* Desktop Hero Image */}
       <m.img
-        initial={{ opacity: 0, rotate: -35 }}
-        animate={{ opacity: 1, rotate: -35 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         transition={{ duration: 1.2, delay: 0.6, ease }}
         src="/hero3.png"
         alt="Hero Image"
