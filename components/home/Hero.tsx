@@ -30,14 +30,14 @@ export default function Hero() {
     <section className="relative h-screen flex flex-col justify-center items-center overflow-hidden">
       {/* Mobile Hero Image */}
       <m.img
-        initial={{ opacity: 0, rotate: -35 }}
-        animate={{ opacity: 1, rotate: -35 }}
+        initial={{ opacity: 0}}
+        animate={{ opacity: 1}}
         transition={{ duration: 1.2, delay: 0.6, ease }}
         src="/heromobile.png"
         alt="Hero Image"
         width={600}
         height={600}
-        className="md:hidden -rotate-35 -bottom-16 w-[70%] absolute"
+        className="md:hidden bottom-32 w-[70%] absolute"
       />
 
       {/* Desktop Hero Image */}
