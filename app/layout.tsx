@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   authors: [{ name: "Lagos Liquor" }],
   creator: "Lagos Liquor",
   publisher: "Lagos Liquor",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://lagosliquor.com"),
+  metadataBase: new URL("https://lagosliquor.com"),
   openGraph: {
     type: "website",
     locale: "en_NG",
@@ -90,7 +90,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full w-screen overflow-x-hidden flex flex-col bg-cream text-ink antialiased font-sans">
         <MotionProvider>
-          <ConditionalLayout><div className="bg-white h-screen w-screen"></div></ConditionalLayout>
+          <ConditionalLayout>{children}</ConditionalLayout>
         </MotionProvider>
       </body>
     </html>
