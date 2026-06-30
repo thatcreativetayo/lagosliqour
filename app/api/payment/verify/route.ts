@@ -29,7 +29,7 @@ export async function GET(request: Request) {
     }
 
     const response = await fetch(
-      `https://api.credocentral.com/transaction/${reference}/verify`,
+      `https://api.credodemo.com/transaction/${reference}/verify`,
       {
         method: "GET",
         headers: {

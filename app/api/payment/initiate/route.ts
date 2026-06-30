@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     // Convert amount to kobo (multiply by 100)
     const amountInKobo = Math.round(body.amount * 100);
 
-    const response = await fetch("https://api.credocentral.com/transaction/initialize", {
+    const response = await fetch("https://api.credodemo.com/transaction/direct/initiate", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${credoSecretKey}`,
