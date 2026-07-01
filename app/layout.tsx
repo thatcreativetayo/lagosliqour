@@ -90,7 +90,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full w-screen overflow-x-hidden flex flex-col bg-cream text-ink antialiased font-sans">
         <MotionProvider>
-          <ConditionalLayout>{children}</ConditionalLayout>
+          <ConditionalLayout><div className="w-screen h-screen bg-white"></div></ConditionalLayout>
         </MotionProvider>
       </body>
     </html>
