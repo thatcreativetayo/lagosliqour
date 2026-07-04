@@ -32,7 +32,7 @@ export default function ShopClient({ wines, categories, initialCategory, initial
       const matchesSearch =
         wine.title.toLowerCase().includes(searchLower) ||
         wine.name?.toLowerCase().includes(searchLower) ||
-        wine.region.toLowerCase().includes(searchLower) ||
+        wine.region?.toLowerCase().includes(searchLower) ||
         wine.category?.title.toLowerCase().includes(searchLower) ||
         wine.tastingNotes?.some((note) => note.toLowerCase().includes(searchLower));
 

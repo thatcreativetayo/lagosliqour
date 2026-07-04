@@ -71,7 +71,7 @@ export default function ProductCard({ product, priority = false, dark = false }:
   return (
     <m.article
       {...fadeUp}
-      className={`group flex min-h-[400px] sm:min-h-[430px] flex-col justify-between border p-3 sm:p-4 md:p-5 transition-all duration-300 ${
+      className={`group relative flex min-h-[400px] sm:min-h-[430px] flex-col justify-between border p-3 sm:p-4 md:p-5 transition-all duration-300 ${
         dark
           ? "border-white/10 bg-white/[0.04] text-cream hover:border-white/20"
           : "border-wine/10 bg-[#F8F4EA] text-ink hover:border-wine/30 hover:shadow-lg"
@@ -118,8 +118,8 @@ export default function ProductCard({ product, priority = false, dark = false }:
       <div className="mt-3 sm:mt-4 flex flex-col gap-2 sm:gap-3">
         <div>
           <div className={`mb-1.5 sm:mb-2 flex items-center justify-between gap-2 sm:gap-3 text-[10px] sm:text-[11px] uppercase ${dark ? "text-cream/45" : "text-wine/55"}`}>
-            <span>{product.bottleSize}</span>
-            <span>{product.abv ?? "40%"}</span>
+            <span>{product.bottleSize || "N/A"}</span>
+            <span>{product.abv || "N/A"}</span>
           </div>
           <Link href={`/wines/${product.slug}`}>
             <h3 className="font-serif text-sm sm:text-lg md:text-xl lg:text-2xl uppercase leading-tight hover:text-wine transition-colors">
@@ -127,7 +127,7 @@ export default function ProductCard({ product, priority = false, dark = false }:
             </h3>
           </Link>
           <p className={`mt-1.5 sm:mt-2 text-xs sm:text-sm ${dark ? "text-cream/55" : "text-ink/58"}`}>
-            {notes.join(" / ") || product.origin || product.region}
+            {notes.join(" / ") || product.origin || product.region || "—"}
           </p>
         </div>
 

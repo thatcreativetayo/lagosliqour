@@ -22,10 +22,10 @@ export interface WineCardResult {
   slug: string;
   price: number;
   comparePrice?: number;
-  region: string;
+  region?: string;
   origin?: string;
-  vintage: number;
-  bottleSize: string;
+  vintage?: number;
+  bottleSize?: string;
   inStock: boolean;
   stock?: number;
   stockCount?: number;
@@ -42,18 +42,18 @@ export interface WineCardResult {
 }
 
 export interface WineDetailResult extends Omit<WineCardResult, "image"> {
-  description: string;
-  tastingNotes: string[];
-  grapeVariety: string;
-  alcoholContent: string;
+  description?: string;
+  tastingNotes?: string[];
+  grapeVariety?: string;
+  alcoholContent?: string;
   abv?: string;
   origin?: string;
   age?: string;
   stock?: number;
   variants?: ProductVariant[];
   stockCount?: number;
-  images: SanityImage[];
-  pairings: string[];
+  images?: SanityImage[];
+  pairings?: string[];
 }
 
 export interface ProductVariant {
