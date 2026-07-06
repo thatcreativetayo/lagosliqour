@@ -30,10 +30,10 @@ export default function ProductActions({ wine }: ProductActionsProps) {
   const cart = useCartStore();
 
   // Calculate prices based on pack size
-  const singlePrice = wine.price;
-  const packPrice = Math.round(wine.price * 6 * (1 - PACK_DISCOUNT));
+  const singlePrice = wine.price || 0;
+  const packPrice = Math.round((wine.price || 0) * 6 * (1 - PACK_DISCOUNT));
   const currentPrice = packSize === "single" ? singlePrice : packPrice;
-  const savings = packSize === "pack" ? Math.round(wine.price * 6 - packPrice) : 0;
+  const savings = packSize === "pack" ? Math.round((wine.price || 0) * 6 - packPrice) : 0;
 
   // Calculate max quantity based on stock and pack size
   const getEffectiveQuantity = () => {
@@ -47,7 +47,7 @@ export default function ProductActions({ wine }: ProductActionsProps) {
     : Math.floor(maxSingleBottles / 6);
 
   function addToCart() {
-    if (!wine.inStock) {
+    if (wine.inStock === false) {
       setError("This product is out of stock");
       return;
     }
@@ -81,14 +81,14 @@ export default function ProductActions({ wine }: ProductActionsProps) {
 
   return (
     <div className="flex flex-col gap-4 sm:gap-5">
-      {!wine.inStock ? (
+      {wine.inStock === false ? (
         <div className="bg-wine/10 border border-wine/20 p-4 text-center">
           <p className="text-wine font-medium">Out of Stock</p>
           <p className="text-xs text-ink/60 mt-1">This item is currently unavailable</p>
         </div>
       ) : null}
 
-      {wine.inStock && wine.stockCount && wine.stockCount < 10 ? (
+      {wine.inStock !== false && wine.stockCount && wine.stockCount < 10 ? (
         <div className="bg-gold/10 border border-gold/20 p-3 text-center">
           <p className="text-xs text-dark">Only {wine.stockCount} left in stock!</p>
         </div>
@@ -133,7 +133,7 @@ export default function ProductActions({ wine }: ProductActionsProps) {
             <p className="text-sm font-medium">Pack of 6</p>
             <p className="text-xs opacity-80 mt-0.5">
               ₦{packPrice.toLocaleString()}
-              {savings > 0 && <span className="line-through opacity-60 ml-2">₦{(wine.price * 6).toLocaleString()}</span>}
+              {savings > 0 && <span className="line-through opacity-60 ml-2">₦{((wine.price || 0) * 6).toLocaleString()}</span>}
             </p>
           </button>
         </div>
@@ -198,14 +198,14 @@ export default function ProductActions({ wine }: ProductActionsProps) {
 
       <Button
         onClick={addToCart}
-        disabled={!wine.inStock}
+        disabled={wine.inStock === false}
         className="w-full disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {wine.inStock ? (added ? "Added to Cart" : "Add to Cart") : "Out of Stock"}
+        {wine.inStock !== false ? (added ? "Added to Cart" : "Add to Cart") : "Out of Stock"}
       </Button>
 
       {/* Stock Notice */}
-      {wine.inStock && wine.stockCount && wine.stockCount > 0 && (
+      {wine.inStock !== false && wine.stockCount && wine.stockCount > 0 && (
         <p className="text-xs text-center text-ink/50">
           {packSize === "single" ? wine.stockCount : Math.floor(wine.stockCount / 6)} {packSize === "single" ? "bottle" : "pack"}
           {packSize === "single" ? wine.stockCount !== 1 : Math.floor(wine.stockCount / 6) !== 1 ? "s" : ""} available

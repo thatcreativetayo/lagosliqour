@@ -158,7 +158,7 @@ export default function SearchBar({ wines = [] }: SearchBarProps) {
                         </p>
                       </div>
                       <div className="text-sm font-semibold text-wine flex-shrink-0">
-                        ₦{(wine.price / 1000).toFixed(0)}k
+                        ₦{((wine.price || 0) / 1000).toFixed(0)}k
                       </div>
                     </m.button>
                   ))}

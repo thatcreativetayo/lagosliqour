@@ -45,12 +45,13 @@ export default function ShopClient({ wines, categories, initialCategory, initial
     }
 
     // Price range filter
-    if (priceRange === "under-50k" && wine.price >= 50000) return false;
-    if (priceRange === "50k-100k" && (wine.price < 50000 || wine.price >= 100000)) return false;
-    if (priceRange === "over-100k" && wine.price < 100000) return false;
+    const price = wine.price || 0;
+    if (priceRange === "under-50k" && price >= 50000) return false;
+    if (priceRange === "50k-100k" && (price < 50000 || price >= 100000)) return false;
+    if (priceRange === "over-100k" && price < 100000) return false;
 
     // Availability filter
-    if (availability === "in-stock" && !wine.inStock) return false;
+    if (availability === "in-stock" && wine.inStock !== true) return false;
     if (availability === "low-stock" && (wine.stockCount || 99) >= 10) return false;
 
     return true;

@@ -71,7 +71,7 @@ export async function generateMetadata({ params }: WinePageProps): Promise<Metad
 
   return {
     title: `${wine.title} | Lagos Liquor`,
-    description: wine.description,
+    description: wine.description || `Premium ${wine.title} from Lagos Liquor`,
     keywords: [
       wine.title,
       wine.region,
@@ -83,14 +83,14 @@ export async function generateMetadata({ params }: WinePageProps): Promise<Metad
     ].filter(Boolean).join(", "),
     openGraph: {
       title: `${wine.title} | Lagos Liquor`,
-      description: wine.description,
+      description: wine.description || `Premium ${wine.title} from Lagos Liquor`,
       url: productUrl,
       images: ogImage ? [{ url: ogImage, width: 1200, height: 630, alt: wine.images?.[0]?.alt || wine.title }] : [],
     },
     twitter: {
       card: "summary_large_image",
       title: `${wine.title} | Lagos Liquor`,
-      description: wine.description,
+      description: wine.description || `Premium ${wine.title} from Lagos Liquor`,
       images: ogImage ? [ogImage] : [],
     },
     alternates: {
@@ -109,7 +109,7 @@ export default async function WinePage({ params }: WinePageProps) {
   const related = wine.category?.slug
     ? (await getAllWines(wine.category.slug)).filter((item) => item._id !== wine._id).slice(0, 5)
     : [];
-  const status = wine.inStock ? `${wine.stockCount ?? 0} in stock` : "Out of stock";
+  const status = wine.inStock !== false ? `${wine.stockCount ?? 0} in stock` : "Out of stock";
   const bgColor = wine.accentColor ? `${wine.accentColor}15` : "rgb(109 27 26 / 0.05)";
 
   const productUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://lagosliquor.com"}/wines/${wine.slug}`;
@@ -157,7 +157,7 @@ export default async function WinePage({ params }: WinePageProps) {
             <div className="flex flex-col gap-3 sm:gap-4 border-y border-wine/10 py-4 sm:py-6">
               <div className="flex items-end gap-3 sm:gap-4">
                 <p className="text-wine text-3xl sm:text-4xl font-semibold">
-                  ₦{wine.price.toLocaleString()}
+                  ₦{(wine.price || 0).toLocaleString()}
                 </p>
                 {wine.comparePrice ? (
                   <p className="text-xl sm:text-2xl text-ink/40 line-through">
@@ -234,7 +234,7 @@ export default async function WinePage({ params }: WinePageProps) {
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-normal text-ink uppercase mb-4 sm:mb-6">
             Cellar Notes
           </h2>
-          <p className="text-sm sm:text-body text-ink/70 leading-relaxed">{wine.description}</p>
+          <p className="text-sm sm:text-body text-ink/70 leading-relaxed">{wine.description || `Premium ${wine.title} from Lagos Liquor`}</p>
         </div>
       </section>
 

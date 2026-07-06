@@ -211,10 +211,10 @@ export default function BottleCarousel() {
             <h2 className="font-display text-heading-2 italic text-cream mb-5">
               &ldquo;{wine.tagline}&rdquo;
             </h2>
-            <p className="text-body text-cream/60 mb-8">{wine.description}</p>
+            <p className="text-body text-cream/60 mb-8">{wine.description || wine.title}</p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8">
               <span className="text-price text-cream">
-                ₦{wine.price.toLocaleString()}
+                ₦{(wine.price || 0).toLocaleString()}
               </span>
               <div className="flex flex-wrap items-center justify-center gap-3">
                 <Button href="/shop" variant="ghost" className="!text-cream !border-cream/20">

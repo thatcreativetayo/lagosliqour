@@ -19,14 +19,14 @@ export interface WineCardResult {
   _id: string;
   title: string;
   name?: string;
-  slug: string;
-  price: number;
+  slug?: string;
+  price?: number;
   comparePrice?: number;
   region?: string;
   origin?: string;
   vintage?: number;
   bottleSize?: string;
-  inStock: boolean;
+  inStock?: boolean;
   stock?: number;
   stockCount?: number;
   rating?: number;

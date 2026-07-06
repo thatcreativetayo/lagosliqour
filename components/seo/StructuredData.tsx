@@ -42,24 +42,24 @@ export function organizationData() {
 // Helper function to generate product structured data
 export function productData(wine: {
   title: string;
-  description: string;
-  price: number;
+  description?: string;
+  price?: number;
   image: string;
   sku?: string;
-  inStock: boolean;
+  inStock?: boolean;
 }) {
   return {
     "@context": "https://schema.org",
     "@type": "Product",
     name: wine.title,
-    description: wine.description,
+    description: wine.description || wine.title,
     image: wine.image,
     sku: wine.sku || wine.title,
     offers: {
       "@type": "Offer",
-      price: wine.price,
+      price: wine.price || 0,
       priceCurrency: "NGN",
-      availability: wine.inStock
+      availability: wine.inStock !== false
         ? "https://schema.org/InStock"
         : "https://schema.org/OutOfStock",
       url: `https://lagosliquor.com/wines/${wine.title

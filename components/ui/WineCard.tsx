@@ -29,7 +29,7 @@ export default function WineCard({ wine }: WineCardProps) {
   const href = `/wines/${slug}`;
   const accentColor = isSanityWine && wine.accentColor ? wine.accentColor : "#6d1b1a";
   const isLiked = liked.isLiked(id);
-  const inStock = isSanityWine ? wine.inStock : true;
+  const inStock = isSanityWine ? wine.inStock !== false : true;
   const stockCount = isSanityWine && wine.stockCount ? wine.stockCount : 99;
 
   function addToCart() {
@@ -40,7 +40,7 @@ export default function WineCard({ wine }: WineCardProps) {
       title,
       image,
       quantity: 1,
-      unitPrice: wine.price,
+      unitPrice: wine.price || 0,
     });
   }
 
@@ -81,7 +81,7 @@ export default function WineCard({ wine }: WineCardProps) {
           </h3>
         </Link>
         <p className="font-serif text-sm sm:text-[17px] font-medium text-ink/60 mt-0.5 sm:mt-1">
-          ₦{wine.price.toLocaleString()}
+          ₦{(wine.price || 0).toLocaleString()}
         </p>
         {isSanityWine && stockCount < 10 && stockCount > 0 ? (
           <p className="text-xs text-wine">Only {stockCount} left in stock</p>
