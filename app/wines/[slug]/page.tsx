@@ -187,7 +187,7 @@ export default async function WinePage({ params }: WinePageProps) {
               </div>
             </div>
 
-            {wine.tastingNotes.length ? (
+            {wine.tastingNotes && wine.tastingNotes.length ? (
               <div>
                 <p className="text-xs uppercase text-wine/70 mb-2 sm:mb-3">Tasting notes</p>
                 <div className="flex flex-wrap gap-2">
