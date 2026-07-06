@@ -9,11 +9,11 @@ import { useCartStore } from "@/lib/stores/cart";
 interface ProductActionsProps {
   wine: {
     wineId: string;
-    slug: string;
+    slug?: string;
     title: string;
     image?: string;
-    price: number;
-    inStock: boolean;
+    price?: number;
+    inStock?: boolean;
     stockCount?: number;
   };
 }
