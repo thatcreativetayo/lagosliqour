@@ -66,7 +66,7 @@ export async function generateMetadata({ params }: WinePageProps): Promise<Metad
     };
   }
 
-  const ogImage = imageUrl(wine.images[0], 1200);
+  const ogImage = wine.images?.[0] ? imageUrl(wine.images[0], 1200) : "/product1.png";
   const productUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://lagosliquor.com"}/wines/${wine.slug}`;
 
   return {
