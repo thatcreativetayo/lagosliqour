@@ -355,7 +355,7 @@ export default function PremiumLanding({ products, categories = [] }: PremiumLan
             {[
               { icon: ShieldCheck, title: "Verified", body: "Supplier checks and product records before the bottle reaches the shelf." },
               { icon: Truck, title: "Lagos Fast", body: "Island, Mainland, and event drops with practical dispatch windows." },
-              { icon: CreditCard, title: "Credo NGN", body: "Secure checkout uses the existing Credo payment route." },
+              { icon: CreditCard, title: "Secure NGN", body: "Secure checkout uses the existing payment route." },
             ].map((item) => (
               <m.div key={item.title} {...fadeUp} className="border border-wine/12 bg-cream p-4 sm:p-5">
                 <item.icon size={22} className="text-wine sm:size-[25px]" />
@@ -436,7 +436,7 @@ export default function PremiumLanding({ products, categories = [] }: PremiumLan
           <p className="mb-3 sm:mb-4 text-xs uppercase tracking-[0.22em] text-wine/65">10 / Private Client Access</p>
           <h2 className="font-serif text-3xl sm:text-5xl lg:text-6xl uppercase leading-none">Save orders. Refill faster. Pay securely.</h2>
           <p className="mt-4 sm:mt-5 max-w-2xl text-sm sm:text-base text-ink/62">
-            Clerk powers sign-in and order history, Supabase stores orders, and Credo completes NGN checkout through the existing flow.
+            Powers sign-in and order history, stores orders, and completes NGN checkout through the existing flow.
           </p>
           <div className="mt-5 sm:mt-6 flex flex-wrap gap-2 sm:gap-3 text-xs sm:text-sm text-wine">
             <span className="inline-flex items-center gap-1.5 sm:gap-2"><SealCheck size={15} className="sm:size-[17px]" /> Authenticity checks</span>
