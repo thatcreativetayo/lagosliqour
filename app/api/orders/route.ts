@@ -28,7 +28,10 @@ export async function POST(request: Request) {
 
     const body = (await request.json()) as CreateOrderRequest;
 
-    const reference = nanoid(16);
+    // Generate reference in format: LLORDER + timestamp + random
+    const timestamp = Date.now().toString().slice(-8); // Last 8 digits of timestamp
+    const random = Math.floor(Math.random() * 100).toString().padStart(2, '0'); // 2 random digits
+    const reference = `LLORDER${timestamp}${random}`;
 
     const { data, error } = await supabaseServer
       .from("orders")

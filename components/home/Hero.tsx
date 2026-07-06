@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import Image from "next/image";
+import Link from "next/link";
 import { m, AnimatePresence } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -83,9 +83,9 @@ export default function Hero() {
               <p className="text-dark text-sm sm:text-base max-w-md">
                 Discover a curated collection of premium wines, whiskeys, and craft liqours delivered straight to your door.
               </p>
-              <button className="font-serif w-fit text-cream hover:bg-transparent border-2 border-wine hover:text-wine transition-all duration-300 cursor-pointer bg-wine py-2 px-4 text-base md:text-lg uppercase">
+              <Link href="/shop" className="font-serif w-fit text-cream hover:bg-transparent border-2 border-wine hover:text-wine transition-all duration-300 cursor-pointer bg-wine py-2 px-4 text-base md:text-lg uppercase">
                 Explore collection
-              </button>
+              </Link>
             </div>
           </div>
           <div className="hidden md:flex gap-12 items-center">

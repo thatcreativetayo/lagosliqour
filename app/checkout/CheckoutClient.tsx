@@ -8,6 +8,7 @@ import Image from "next/image";
 import { useCartStore } from "@/lib/stores/cart";
 import { checkoutSchema, NIGERIAN_STATES, type CheckoutFormData } from "@/lib/validations/checkout";
 import type { CreateOrderRequest } from "@/app/api/orders/route";
+import BankTransferModal from "@/components/checkout/BankTransferModal";
 
 const DELIVERY_FEE = 2000;
 const FREE_DELIVERY_THRESHOLD = 50000;
@@ -16,6 +17,10 @@ export default function CheckoutClient() {
   const router = useRouter();
   const cart = useCartStore();
   const [submitting, setSubmitting] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<"online" | "transfer">("transfer");
+  const [showBankModal, setShowBankModal] = useState(false);
+  const [orderReference, setOrderReference] = useState("");
+  const [customerData, setCustomerData] = useState<CheckoutFormData | null>(null);
 
   const deliveryFee = cart.subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_FEE;
   const total = cart.subtotal + deliveryFee;
@@ -64,30 +69,71 @@ export default function CheckoutClient() {
       }
 
       const { orderId, reference } = await response.json();
+      setOrderReference(reference);
+      setCustomerData(data);
 
-      // Initiate payment
-      const paymentResponse = await fetch("/api/payment/initiate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          reference,
-          orderId,
-          amount: total,
-          email: data.email,
-          customerName: data.fullName,
-        }),
-      });
+      if (paymentMethod === "transfer") {
+        // Show bank transfer modal
+        setShowBankModal(true);
+        setSubmitting(false);
+      } else {
+        // Online payment (Credopal)
+        const paymentResponse = await fetch("/api/payment/initiate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            reference,
+            orderId,
+            amount: total,
+            email: data.email,
+            customerName: data.fullName,
+          }),
+        });
 
-      if (!paymentResponse.ok) {
-        throw new Error("Failed to initiate payment");
+        if (!paymentResponse.ok) {
+          throw new Error("Failed to initiate payment");
+        }
+
+        const { authorizationUrl } = await paymentResponse.json();
+        window.location.href = authorizationUrl;
       }
-
-      const { authorizationUrl } = await paymentResponse.json();
-      window.location.href = authorizationUrl;
     } catch (error) {
       console.error("Checkout error:", error);
       alert("Something went wrong. Please try again.");
       setSubmitting(false);
+    }
+  }
+
+  async function handleBankTransferConfirm() {
+    if (!customerData) return;
+
+    try {
+      // Send email to store owner
+      await fetch("/api/orders/bank-transfer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId: orderReference,
+          customerName: customerData.fullName,
+          customerEmail: customerData.email,
+          customerPhone: customerData.phone,
+          items: cart.items,
+          total,
+        }),
+      });
+
+      // Redirect to WhatsApp
+      const whatsappMessage = encodeURIComponent(
+        `Hi Lagos Liquor, I just placed an order (Ref: ${orderReference}) and completed a bank transfer of ₦${total.toLocaleString()}. Please find payment proof attached.`
+      );
+      const whatsappUrl = `https://wa.me/2348083703793?text=${whatsappMessage}`;
+      
+      // Clear cart and redirect
+      cart.clearCart();
+      window.location.href = whatsappUrl;
+    } catch (error) {
+      console.error("Bank transfer confirmation error:", error);
+      alert("Failed to send confirmation. Please contact us directly.");
     }
   }
 
@@ -241,6 +287,74 @@ export default function CheckoutClient() {
                 </div>
               </div>
 
+              <div>
+                <h2 className="text-xl sm:text-2xl font-normal text-ink uppercase mb-4 sm:mb-6">
+                  Payment Method
+                </h2>
+                <div className="flex flex-col gap-4">
+                  <label
+                    className={`border-2 p-4 cursor-pointer transition-all ${
+                      paymentMethod === "transfer"
+                        ? "border-wine bg-wine/5"
+                        : "border-wine/20 hover:border-wine/40"
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="transfer"
+                        checked={paymentMethod === "transfer"}
+                        onChange={(e) => setPaymentMethod(e.target.value as "online" | "transfer")}
+                        className="mt-1"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-dark font-medium">Bank Transfer</span>
+                          <span className="text-xs bg-wine text-cream px-2 py-0.5 uppercase">
+                            Fastest Option
+                          </span>
+                        </div>
+                        <p className="text-xs text-ink/60 mt-1">
+                          Pay directly to our bank account. We'll process your order once payment is confirmed.
+                        </p>
+                      </div>
+                    </div>
+                  </label>
+
+                  <label
+                    className={`border-2 p-4 cursor-not-allowed opacity-50 ${
+                      paymentMethod === "online"
+                        ? "border-wine bg-wine/5"
+                        : "border-wine/20"
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="online"
+                        disabled
+                        checked={paymentMethod === "online"}
+                        onChange={(e) => setPaymentMethod(e.target.value as "online" | "transfer")}
+                        className="mt-1"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-dark font-medium">Online Payment</span>
+                          <span className="text-xs bg-ink/20 text-dark px-2 py-0.5 uppercase">
+                            Unavailable
+                          </span>
+                        </div>
+                        <p className="text-xs text-ink/60 mt-1">
+                          Currently unavailable due to unconfigured Credo account.
+                        </p>
+                      </div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
               <button
                 type="submit"
                 disabled={submitting}
@@ -314,6 +428,14 @@ export default function CheckoutClient() {
           </div>
         </div>
       </div>
+
+      <BankTransferModal
+        isOpen={showBankModal}
+        onClose={() => setShowBankModal(false)}
+        onConfirm={handleBankTransferConfirm}
+        orderAmount={total}
+        orderId={orderReference}
+      />
     </main>
   );
 }

@@ -5,16 +5,15 @@ export const wineSchema = {
   title: "Product",
   type: "document",
   fields: [
-    { name: "title", title: "Product name", type: "string", validation: (Rule: ValidationRule) => Rule.required() },
+    { name: "title", title: "Product name", type: "string" },
     { name: "name", title: "Name alias", type: "string", description: "Optional alias for integrations that expect name." },
     {
       name: "slug",
       title: "Slug",
       type: "slug",
       options: { source: "title", maxLength: 96 },
-      validation: (Rule: ValidationRule) => Rule.required(),
     },
-    { name: "price", title: "Price (NGN)", type: "number", validation: (Rule: ValidationRule) => Rule.required().min(0) },
+    { name: "price", title: "Price (NGN)", type: "number", validation: (Rule: ValidationRule) => Rule.min(0) },
     { name: "comparePrice", title: "Compare price", type: "number", validation: (Rule: ValidationRule) => Rule.min(0) },
     { name: "description", title: "Description", type: "text" },
     {
