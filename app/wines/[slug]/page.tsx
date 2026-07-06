@@ -22,11 +22,13 @@ function imageUrl(image?: SanityImage, width = 1200) {
 
 function galleryImages(wine: WineDetailResult): GalleryImage[] {
   const images = wine.images
-    .map((image) => ({
-      src: imageUrl(image, 1200),
-      alt: image.alt || wine.title,
-    }))
-    .filter((image) => image.src);
+    ? wine.images
+        .map((image) => ({
+          src: imageUrl(image, 1200),
+          alt: image.alt || wine.title,
+        }))
+        .filter((image) => image.src)
+    : [];
 
   return images.length
     ? images
