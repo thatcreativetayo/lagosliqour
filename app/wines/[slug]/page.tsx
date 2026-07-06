@@ -85,7 +85,7 @@ export async function generateMetadata({ params }: WinePageProps): Promise<Metad
       title: `${wine.title} | Lagos Liquor`,
       description: wine.description,
       url: productUrl,
-      images: ogImage ? [{ url: ogImage, width: 1200, height: 630, alt: wine.images[0]?.alt || wine.title }] : [],
+      images: ogImage ? [{ url: ogImage, width: 1200, height: 630, alt: wine.images?.[0]?.alt || wine.title }] : [],
     },
     twitter: {
       card: "summary_large_image",
