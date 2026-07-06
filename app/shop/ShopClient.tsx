@@ -61,9 +61,9 @@ export default function ShopClient({ wines, categories, initialCategory, initial
   const sortedWines = [...filteredWines].sort((a, b) => {
     switch (sortBy) {
       case "price-low":
-        return a.price - b.price;
+        return (a.price || 0) - (b.price || 0);
       case "price-high":
-        return b.price - a.price;
+        return (b.price || 0) - (a.price || 0);
       case "name":
         return a.title.localeCompare(b.title);
       case "newest":
