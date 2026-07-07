@@ -106,7 +106,7 @@ function ProductCard({ product, priority = false, dark = false }: { product: Win
       title: product.title,
       image,
       quantity: 1,
-      unitPrice: product.price,
+      unitPrice: product.price || 0,
     });
   }
 

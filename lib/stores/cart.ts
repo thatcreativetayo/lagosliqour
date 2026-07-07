@@ -4,7 +4,7 @@ import { useSyncExternalStore } from "react";
 
 export interface CartItem {
   wineId: string;
-  slug: string;
+  slug?: string;
   title: string;
   image?: string;
   quantity: number;
