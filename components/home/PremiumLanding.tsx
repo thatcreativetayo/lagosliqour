@@ -145,7 +145,7 @@ function ProductCard({ product, priority = false, dark = false }: { product: Win
         </div>
 
         <div className="flex items-center justify-between gap-3">
-          <p className={`font-serif text-xl ${dark ? "text-gold" : "text-wine"}`}>{formatNaira(product.price)}</p>
+          <p className={`font-serif text-xl ${dark ? "text-gold" : "text-wine"}`}>{formatNaira(product.price || 0)}</p>
           <button
             type="button"
             onClick={addToCart}
