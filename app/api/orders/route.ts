@@ -23,7 +23,10 @@ export async function POST(request: Request) {
     // Validate environment variables at runtime
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
       console.error("Missing Supabase configuration");
-      return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
+      return NextResponse.json({ 
+        error: "Service unavailable - Database not configured",
+        details: "Please configure SUPABASE environment variables"
+      }, { status: 503 });
     }
 
     const body = (await request.json()) as CreateOrderRequest;
@@ -56,7 +59,10 @@ export async function POST(request: Request) {
 
     if (error) {
       console.error("Supabase error:", error);
-      return NextResponse.json({ error: "Failed to create order" }, { status: 500 });
+      return NextResponse.json({ 
+        error: "Failed to create order",
+        details: error.message 
+      }, { status: 500 });
     }
 
     return NextResponse.json({
@@ -65,6 +71,9 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("Order creation error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ 
+      error: "Internal server error",
+      details: error instanceof Error ? error.message : "Unknown error"
+    }, { status: 500 });
   }
 }

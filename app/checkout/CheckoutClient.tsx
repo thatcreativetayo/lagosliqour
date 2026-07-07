@@ -347,7 +347,7 @@ export default function CheckoutClient() {
                           </span>
                         </div>
                         <p className="text-xs text-ink/60 mt-1">
-                          Currently unavailable due to unconfigured Credo account.
+                          Currently unavailable due to technical issues.
                         </p>
                       </div>
                     </div>
