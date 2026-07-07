@@ -56,15 +56,15 @@ export default function ProductCard({ product, priority = false, dark = false }:
       title: product.title,
       image,
       quantity: 1,
-      unitPrice: product.price,
+      unitPrice: product.price || 0,
     });
 
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   }
 
-  const hasDiscount = product.comparePrice && product.comparePrice > product.price;
-  const discountPercent = hasDiscount && product.comparePrice
+  const hasDiscount = product.comparePrice && product.comparePrice > (product.price || 0);
+  const discountPercent = hasDiscount && product.comparePrice && product.price
     ? Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)
     : 0;
 
@@ -134,7 +134,7 @@ export default function ProductCard({ product, priority = false, dark = false }:
         <div className="flex items-center justify-between gap-2 sm:gap-3">
           <div className="flex flex-col">
             <p className={`font-serif text-base sm:text-lg md:text-xl ${dark ? "text-gold" : "text-wine"}`}>
-              {formatNaira(product.price)}
+              {formatNaira(product.price || 0)}
             </p>
             {hasDiscount && (
               <p className={`text-xs line-through ${dark ? "text-cream/40" : "text-ink/40"}`}>
