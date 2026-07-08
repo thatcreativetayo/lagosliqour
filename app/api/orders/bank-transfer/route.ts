@@ -265,7 +265,7 @@ export async function POST(request: NextRequest) {
     console.log("Attempting to send email to abiodunariyo2018@gmail.com");
     
     const emailResult = await resend.emails.send({
-      from: "onboarding@resend.dev",
+      from: "Lagos Liquor <checkout@lagosliquor.com>",
       to: "abiodunariyo2018@gmail.com",
       subject: `New Bank Transfer Order - ${body.orderId}`,
       html: generateBankTransferEmailHTML(body),
