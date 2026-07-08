@@ -243,25 +243,48 @@ function generateBankTransferEmailHTML(data: BankTransferEmailData): string {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log("=== Bank Transfer Email API Called ===");
+    
     if (!process.env.RESEND_API_KEY) {
       console.error("RESEND_API_KEY not configured");
-      return NextResponse.json({ error: "Email service unavailable" }, { status: 503 });
+      return NextResponse.json({ 
+        error: "Email service unavailable",
+        message: "RESEND_API_KEY environment variable is not set"
+      }, { status: 503 });
     }
 
     const body: BankTransferEmailData = await request.json();
+    console.log("Order data received:", {
+      orderId: body.orderId,
+      customerName: body.customerName,
+      itemCount: body.items.length,
+      total: body.total
+    });
 
     // Send email to store owner using Resend free tier format
-    await resend.emails.send({
+    console.log("Attempting to send email to therealteejay25@gmail.com");
+    
+    const emailResult = await resend.emails.send({
       from: "onboarding@resend.dev",
-      to: "azeezodetunde@gmail.com",
+      to: "therealteejay25@gmail.com",
       subject: `New Bank Transfer Order - ${body.orderId}`,
       html: generateBankTransferEmailHTML(body),
     });
 
-    return NextResponse.json({ success: true });
+    console.log("Email sent successfully:", emailResult);
+
+    return NextResponse.json({ 
+      success: true, 
+      emailId: emailResult.data?.id,
+      message: "Email sent successfully"
+    });
   } catch (error) {
     console.error("Bank transfer email error:", error);
-    return NextResponse.json({ error: "Failed to send email" }, { status: 500 });
+    return NextResponse.json({ 
+      error: "Failed to send email",
+      message: error instanceof Error ? error.message : "Unknown error",
+      details: error
+    }, { status: 500 });
   }
 }
  

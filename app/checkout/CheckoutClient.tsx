@@ -43,6 +43,9 @@ export default function CheckoutClient() {
     setSubmitting(true);
 
     try {
+      console.log("=== Starting Checkout Process ===");
+      console.log("Payment Method:", paymentMethod);
+      
       const orderData: CreateOrderRequest = {
         customerName: data.fullName,
         customerEmail: data.email,
@@ -58,6 +61,12 @@ export default function CheckoutClient() {
         total,
       };
 
+      console.log("Creating order with data:", { 
+        customerName: orderData.customerName, 
+        itemCount: orderData.items.length,
+        total: orderData.total 
+      });
+
       const response = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -65,14 +74,19 @@ export default function CheckoutClient() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to create order");
+        const errorData = await response.json();
+        console.error("Order creation failed:", errorData);
+        throw new Error(errorData.message || "Failed to create order");
       }
 
       const { orderId, reference } = await response.json();
+      console.log("Order created successfully:", { orderId, reference });
+      
       setOrderReference(reference);
       setCustomerData(data);
 
       if (paymentMethod === "transfer") {
+        console.log("Showing bank transfer modal");
         // Show bank transfer modal
         setShowBankModal(true);
         setSubmitting(false);
@@ -108,8 +122,13 @@ export default function CheckoutClient() {
     if (!customerData) return;
 
     try {
-      // Send email to store owner
-      await fetch("/api/orders/bank-transfer", {
+      console.log("=== Sending Bank Transfer Email ===");
+      console.log("Order Reference:", orderReference);
+      console.log("Customer:", customerData.fullName);
+      console.log("Total:", total);
+
+      // Send email to store owner - WAIT for it to complete
+      const emailResponse = await fetch("/api/orders/bank-transfer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -122,18 +141,29 @@ export default function CheckoutClient() {
         }),
       });
 
-      // Redirect to WhatsApp
+      const emailResult = await emailResponse.json();
+      console.log("Email API Response:", emailResult);
+
+      if (!emailResponse.ok) {
+        console.error("Email API failed:", emailResult);
+        throw new Error(emailResult.message || "Failed to send email");
+      }
+
+      console.log("Email sent successfully with ID:", emailResult.emailId);
+
+      // Clear cart BEFORE redirecting
+      cart.clearCart();
+
+      // NOW redirect to WhatsApp after email is confirmed sent
       const whatsappMessage = encodeURIComponent(
         `Hi Lagos Liquor, I just placed an order (Ref: ${orderReference}) and completed a bank transfer of ₦${total.toLocaleString()}. Please find payment proof attached.`
       );
       const whatsappUrl = `https://wa.me/2348083703793?text=${whatsappMessage}`;
       
-      // Clear cart and redirect
-      cart.clearCart();
       window.location.href = whatsappUrl;
     } catch (error) {
       console.error("Bank transfer confirmation error:", error);
-      alert("Failed to send confirmation. Please contact us directly.");
+      alert(`Failed to send confirmation: ${error instanceof Error ? error.message : "Unknown error"}. Please contact us directly.`);
     }
   }
 
