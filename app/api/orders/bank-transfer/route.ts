@@ -262,11 +262,11 @@ export async function POST(request: NextRequest) {
     });
 
     // Send email to store owner using Resend free tier format
-    console.log("Attempting to send email to abiodunariyo2018@gmail.com");
+    console.log("Attempting to send email to lagosliquor@yahoo.com");
     
     const emailResult = await resend.emails.send({
       from: "Lagos Liquor <checkout@lagosliquor.com>",
-      to: "abiodunariyo2018@gmail.com",
+      to: "lagosliquor@yahoo.com",
       subject: `New Bank Transfer Order - ${body.orderId}`,
       html: generateBankTransferEmailHTML(body),
     });
