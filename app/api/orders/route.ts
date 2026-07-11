@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { nanoid } from "nanoid";
 import { supabaseServer } from "@/lib/supabase/server";
+import { sanityWriteClient } from "@/lib/sanity/write-client";
 import type { CartItem } from "@/lib/stores/cart";
 
 export interface CreateOrderRequest {
@@ -36,6 +37,7 @@ export async function POST(request: Request) {
     const random = Math.floor(Math.random() * 100).toString().padStart(2, '0'); // 2 random digits
     const reference = `LLORDER${timestamp}${random}`;
 
+    // Create order in Supabase
     const { data, error } = await supabaseServer
       .from("orders")
       .insert({
@@ -63,6 +65,45 @@ export async function POST(request: Request) {
         error: "Failed to create order",
         details: error.message 
       }, { status: 500 });
+    }
+
+    // Also create order in Sanity for owner management
+    try {
+      await sanityWriteClient.create({
+        _type: "order",
+        reference: data.reference,
+        status: "pending",
+        customerName: body.customerName,
+        customerEmail: body.customerEmail,
+        customerPhone: body.customerPhone,
+        deliveryAddress: {
+          streetAddress: body.streetAddress,
+          landmark: body.landmark,
+          city: body.city,
+          state: body.state,
+        },
+        deliveryNotes: body.deliveryNotes,
+        items: body.items.map(item => ({
+          _type: "object",
+          _key: nanoid(),
+          wineId: item.wineId,
+          slug: item.slug,
+          title: item.title,
+          image: item.image,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          lineTotal: item.lineTotal,
+        })),
+        subtotal: body.subtotal,
+        deliveryFee: body.deliveryFee,
+        total: body.total,
+        paymentMethod: "transfer",
+        orderDate: new Date().toISOString(),
+      });
+      console.log("Order synced to Sanity:", data.reference);
+    } catch (sanityError) {
+      console.error("Failed to sync order to Sanity:", sanityError);
+      // Don't fail the request if Sanity sync fails
     }
 
     return NextResponse.json({
