@@ -246,7 +246,7 @@ export async function POST(request: NextRequest) {
     const body: CustomerEmailData = await request.json();
 
     const emailResult = await resend.emails.send({
-      from: "Lagos Liquor <onboarding@resend.dev>",
+      from: process.env.RESEND_FROM_EMAIL || "Lagos Liquor <customercare@lagosliquor.com>",
       to: body.customerEmail,
       subject: `Order Confirmation - ${body.orderId}`,
       html: generateCustomerEmailHTML(body),
