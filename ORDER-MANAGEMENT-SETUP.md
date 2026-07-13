@@ -23,4 +23,31 @@
 - Route: `/thank-you?ref=ORDERXXXXXX`
 
 ### 3. **Sanity Order Management** 📊
-- Orders ar
+- Orders are automatically synced to Sanity Studio
+- Store owner can manage orders in Sanity CMS
+- Order schema includes:
+  - Customer information
+  - Order items
+  - Delivery address
+  - Order status (pending, confirmed, processing, shipped, delivered, cancelled, failed)
+  - Internal notes
+  - Payment method
+- Orders are searchable and sortable in Sanity Studio
+
+### 4. **User Orders Page** 📦
+- Already exists at `/orders`
+- Users can view their order history
+- Shows order status, items, and delivery details
+- Requires Clerk authentication
+
+## 🔧 Setup Required
+
+### 1. Get Sanity Write Token
+
+To enable order syncing to Sanity Studio:
+
+1. Go to https://www.sanity.io/manage
+2. Select your project
+3. Go to **API** → **Tokens**
+4. Click **Add API Token**
+5. Name it "Order Manag
