@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
+import { useUser, SignInButton } from "@clerk/nextjs";
 import { useCartStore } from "@/lib/stores/cart";
 import { checkoutSchema, NIGERIAN_STATES, type CheckoutFormData } from "@/lib/validations/checkout";
 import type { CreateOrderRequest } from "@/app/api/orders/route";
@@ -15,6 +16,7 @@ const FREE_DELIVERY_THRESHOLD = 50000;
 
 export default function CheckoutClient() {
   const router = useRouter();
+  const { user, isLoaded, isSignedIn } = useUser();
   const cart = useCartStore();
   const [submitting, setSubmitting] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"online" | "transfer">("transfer");
@@ -38,6 +40,49 @@ export default function CheckoutClient() {
       router.push("/shop");
     }
   }, [cart.items.length, router]);
+
+  // Show loading state
+  if (!isLoaded) {
+    return (
+      <main className="bg-cream pt-20 sm:pt-24 pb-12 sm:pb-20">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-16">
+          <div className="text-center">
+            <p className="text-sm sm:text-body text-ink/60">Loading...</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // Show sign-in prompt
+  if (!isSignedIn) {
+    return (
+      <main className="bg-cream pt-20 sm:pt-24 pb-12 sm:pb-20">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-16">
+          <div className="mb-8 sm:mb-12">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-normal text-ink uppercase">Checkout</h1>
+          </div>
+          <div className="max-w-md mx-auto bg-wine/5 border-2 border-wine/20 p-8">
+            <h2 className="text-xl font-semibold text-ink mb-4">Sign In Required</h2>
+            <p className="text-base text-ink/70 mb-6">
+              Please sign in to complete your order. This helps us track your orders and provide better service.
+            </p>
+            <SignInButton mode="modal">
+              <button className="w-full bg-wine text-cream px-8 py-3 border-2 border-wine hover:bg-transparent hover:text-wine transition-all duration-300 mb-4">
+                Sign In to Continue
+              </button>
+            </SignInButton>
+            <button
+              onClick={() => router.push("/cart")}
+              className="w-full border-2 border-wine/20 text-dark px-8 py-3 hover:border-wine hover:text-wine transition-all duration-300"
+            >
+              Back to Cart
+            </button>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   async function onSubmit(data: CheckoutFormData) {
     setSubmitting(true);

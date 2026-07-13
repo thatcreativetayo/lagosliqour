@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import { auth } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
 import OrdersClient from "./OrdersClient";
 
 export const metadata: Metadata = {
@@ -8,12 +6,9 @@ export const metadata: Metadata = {
   description: "View your order history.",
 };
 
-export default async function OrdersPage() {
-  const { userId } = await auth();
+// Force dynamic rendering for this page
+export const dynamic = "force-dynamic";
 
-  if (!userId) {
-    redirect("/sign-in");
-  }
-
+export default function OrdersPage() {
   return <OrdersClient />;
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useUser } from "@clerk/nextjs";
+import { useUser, SignInButton } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -35,13 +35,18 @@ interface Order {
 }
 
 export default function OrdersClient() {
-  const { user } = useUser();
+  const { user, isLoaded, isSignedIn } = useUser();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchOrders() {
-      if (!user?.primaryEmailAddress?.emailAddress) return;
+      if (!isLoaded) return;
+      
+      if (!isSignedIn || !user?.primaryEmailAddress?.emailAddress) {
+        setLoading(false);
+        return;
+      }
 
       try {
         const response = await fetch(`/api/orders/user?email=${encodeURIComponent(user.primaryEmailAddress.emailAddress)}`);
@@ -57,14 +62,36 @@ export default function OrdersClient() {
     }
 
     fetchOrders();
-  }, [user]);
+  }, [user, isLoaded, isSignedIn]);
 
-  if (loading) {
+  if (!isLoaded || loading) {
     return (
       <main className="bg-cream pt-20 sm:pt-24 pb-12 sm:pb-20">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-16">
           <div className="text-center">
-            <p className="text-sm sm:text-body text-ink/60">Loading your orders...</p>
+            <p className="text-sm sm:text-body text-ink/60">Loading...</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (!isSignedIn) {
+    return (
+      <main className="bg-cream pt-20 sm:pt-24 pb-12 sm:pb-20">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-16">
+          <div className="mb-8 sm:mb-12 text-center">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-normal text-ink uppercase mb-6">My Orders</h1>
+            <div className="max-w-md mx-auto bg-wine/5 border-2 border-wine/20 p-8">
+              <p className="text-base sm:text-lg text-ink mb-6">
+                Please sign in to view your order history and track your purchases.
+              </p>
+              <SignInButton mode="modal">
+                <button className="w-full bg-wine text-cream px-8 py-3 border-2 border-wine hover:bg-transparent hover:text-wine transition-all duration-300">
+                  Sign In to View Orders
+                </button>
+              </SignInButton>
+            </div>
           </div>
         </div>
       </main>
