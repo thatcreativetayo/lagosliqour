@@ -176,19 +176,8 @@ export default function CheckoutClient() {
       // Clear cart
       cart.clearCart();
 
-      // Redirect to thank you page, then WhatsApp
-      const whatsappMessage = encodeURIComponent(
-        `Hi Lagos Liquor, I just placed an order (Ref: ${orderReference}) and completed a bank transfer of ₦${total.toLocaleString()}. Please find payment proof attached.`
-      );
-      const whatsappUrl = `https://wa.me/2348083703793?text=${whatsappMessage}`;
-      
-      // Redirect to thank you page first
+      // Redirect to thank you page (user can click WhatsApp button there)
       router.push(`/thank-you?ref=${orderReference}`);
-      
-      // Open WhatsApp in new tab after a short delay
-      setTimeout(() => {
-        window.open(whatsappUrl, '_blank');
-      }, 1000);
     } catch (error) {
       console.error("Bank transfer confirmation error:", error);
       alert(`Failed to process order: ${error instanceof Error ? error.message : "Unknown error"}. Please contact us directly.`);
