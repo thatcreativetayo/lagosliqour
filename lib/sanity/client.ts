@@ -13,7 +13,6 @@ export function groq(strings: TemplateStringsArray, ...values: unknown[]) {
 export async function sanityFetch<T>({
   query,
   params = {},
-  revalidate = 60,
 }: {
   query: string;
   params?: SanityParams;
@@ -38,8 +37,8 @@ export async function sanityFetch<T>({
 
   const headers: HeadersInit = {};
   
-  // Add token for authenticated requests if available
-  const token = process.env.NEXT_PUBLIC_SANITY_API_WRITE_TOKEN;
+  // Add token for authenticated server-side requests if available.
+  const token = process.env.SANITY_API_WRITE_TOKEN;
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }

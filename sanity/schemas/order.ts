@@ -32,6 +32,22 @@ export const orderSchema = defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
+      name: "paymentStatus",
+      title: "Payment Status",
+      type: "string",
+      options: {
+        list: [
+          { title: "Pending", value: "pending" },
+          { title: "Initiated", value: "initiated" },
+          { title: "Paid", value: "paid" },
+          { title: "Failed", value: "failed" },
+        ],
+        layout: "dropdown",
+      },
+      initialValue: "pending",
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
       name: "customerName",
       title: "Customer Name",
       type: "string",
@@ -81,6 +97,7 @@ export const orderSchema = defineType({
             { name: "quantity", title: "Quantity", type: "number" },
             { name: "unitPrice", title: "Unit Price", type: "number" },
             { name: "lineTotal", title: "Line Total", type: "number" },
+            { name: "packSize", title: "Pack Size", type: "number" },
           ],
           preview: {
             select: {
@@ -126,6 +143,18 @@ export const orderSchema = defineType({
           { title: "Online Payment", value: "online" },
         ],
       },
+    }),
+    defineField({
+      name: "credoReference",
+      title: "Credo Transaction Reference",
+      type: "string",
+      readOnly: true,
+    }),
+    defineField({
+      name: "paidAt",
+      title: "Paid At",
+      type: "datetime",
+      readOnly: true,
     }),
     defineField({
       name: "orderDate",

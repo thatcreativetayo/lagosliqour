@@ -1,18 +1,41 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
+import { groq, sanityFetch } from "@/lib/sanity/client";
+import { sanityWriteClient } from "@/lib/sanity/write-client";
+
+interface SanityOrder {
+  _id: string;
+  reference: string;
+  credoReference?: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  deliveryAddress?: {
+    streetAddress?: string;
+    landmark?: string;
+    city?: string;
+    state?: string;
+  };
+  items: unknown[];
+  subtotal: number;
+  deliveryFee: number;
+  total: number;
+  orderDate: string;
+}
+
+const defaultCredoBaseUrl = "https://api.credocentral.com";
 
 export async function GET(request: Request) {
   try {
-    // Validate environment variables at runtime
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      console.error("Missing Supabase configuration");
-      return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
-    }
-
     const { searchParams } = new URL(request.url);
-    const reference = searchParams.get("reference");
+    const callbackReference = searchParams.get("reference");
+    const callbackTransRef =
+      searchParams.get("transRef") ??
+      searchParams.get("transref") ??
+      searchParams.get("credoReference") ??
+      searchParams.get("credo_reference");
 
-    if (!reference) {
+    if (!callbackReference && !callbackTransRef) {
       return NextResponse.json(
         { error: "Missing payment reference" },
         { status: 400 }
@@ -20,6 +43,7 @@ export async function GET(request: Request) {
     }
 
     const credoSecretKey = process.env.CREDO_SECRET_KEY;
+    const credoBaseUrl = process.env.CREDO_BASE_URL ?? defaultCredoBaseUrl;
 
     if (!credoSecretKey) {
       return NextResponse.json(
@@ -28,12 +52,53 @@ export async function GET(request: Request) {
       );
     }
 
+    const order = await sanityFetch<SanityOrder | null>({
+      query: groq`*[_type == "order" && (
+        reference == $reference ||
+        credoReference == $transRef
+      )][0]{
+        _id,
+        reference,
+        credoReference,
+        customerName,
+        customerEmail,
+        customerPhone,
+        deliveryAddress,
+        items,
+        subtotal,
+        deliveryFee,
+        total,
+        orderDate
+      }`,
+      params: {
+        reference: callbackReference ?? "",
+        transRef: callbackTransRef ?? "",
+      },
+      revalidate: 0,
+    });
+
+    if (!order) {
+      return NextResponse.json(
+        { error: "Order not found" },
+        { status: 404 }
+      );
+    }
+
+    const transRef = callbackTransRef ?? order.credoReference;
+
+    if (!transRef) {
+      return NextResponse.json(
+        { error: "Payment transaction reference not ready. Please try again shortly." },
+        { status: 409 }
+      );
+    }
+
     const response = await fetch(
-      `https://api.credodemo.com/transaction/${reference}/verify`,
+      `${credoBaseUrl}/transaction/${transRef}/verify`,
       {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${credoSecretKey}`,
+          Authorization: credoSecretKey,
         },
       }
     );
@@ -48,46 +113,62 @@ export async function GET(request: Request) {
     }
 
     const data = await response.json();
+    const isPaid =
+      data.status === 200 &&
+      data.data?.status === 0 &&
+      data.data?.businessRef === order.reference &&
+      data.data?.currencyCode === "NGN" &&
+      Number(data.data?.transAmount) === Math.round(order.total * 100);
 
-    if (data.status === "PAID") {
+    if (isPaid) {
       // Update order status to confirmed
-      const { data: orderData, error: updateError } = await supabaseServer
-        .from("orders")
-        .update({
-          status: "confirmed",
-          updated_at: new Date().toISOString(),
-        })
-        .eq("reference", reference)
-        .select()
-        .single();
+      const paidAt = new Date().toISOString();
 
-      if (updateError) {
-        console.error("Failed to update order status:", updateError);
-        return NextResponse.json(
-          { error: "Failed to update order" },
-          { status: 500 }
-        );
+      await sanityWriteClient
+        .patch(order._id)
+        .set({
+          status: "confirmed",
+          paymentStatus: "paid",
+          credoReference: transRef,
+          paidAt,
+        })
+        .commit();
+
+      if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        const { error: updateError } = await supabaseServer
+          .from("orders")
+          .update({
+            status: "confirmed",
+            updated_at: paidAt,
+          })
+          .eq("reference", order.reference);
+
+        if (updateError) {
+          console.error("Failed to update Supabase backup order:", updateError);
+        }
       }
 
       // Send confirmation emails
       try {
-        await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/send-order-email`, {
+        await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/orders/send-confirmation`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            reference: orderData.reference,
-            customerName: orderData.customer_name,
-            customerEmail: orderData.customer_email,
-            customerPhone: orderData.customer_phone,
-            state: orderData.state,
-            city: orderData.city,
-            streetAddress: orderData.street_address,
-            landmark: orderData.landmark,
-            items: orderData.items,
-            subtotal: orderData.subtotal,
-            deliveryFee: orderData.delivery_fee,
-            total: orderData.total,
-            createdAt: orderData.created_at,
+            reference: order.reference,
+            customerName: order.customerName,
+            customerEmail: order.customerEmail,
+            customerPhone: order.customerPhone,
+            deliveryAddress: {
+              street: order.deliveryAddress?.streetAddress ?? "",
+              landmark: order.deliveryAddress?.landmark,
+              city: order.deliveryAddress?.city ?? "",
+              state: order.deliveryAddress?.state ?? "",
+            },
+            items: order.items,
+            subtotal: order.subtotal,
+            deliveryFee: order.deliveryFee,
+            total: order.total,
+            createdAt: order.orderDate,
           }),
         });
       } catch (emailError) {
@@ -97,14 +178,22 @@ export async function GET(request: Request) {
 
       return NextResponse.json({
         status: "success",
-        reference,
+        reference: order.reference,
         data: data.data,
       });
     }
 
+    await sanityWriteClient
+      .patch(order._id)
+      .set({
+        paymentStatus: "failed",
+        credoReference: transRef,
+      })
+      .commit();
+
     return NextResponse.json({
       status: "failed",
-      reference,
+      reference: order.reference,
       message: data.message || "Payment was not successful",
     });
   } catch (error) {

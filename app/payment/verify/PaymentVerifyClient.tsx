@@ -17,16 +17,25 @@ export default function PaymentVerifyClient() {
   useEffect(() => {
     async function verifyPayment() {
       const ref = searchParams.get("reference");
+      const transRef =
+        searchParams.get("transRef") ??
+        searchParams.get("transref") ??
+        searchParams.get("credoReference") ??
+        searchParams.get("credo_reference");
 
-      if (!ref) {
+      if (!ref && !transRef) {
         setStatus("failed");
         return;
       }
 
-      setReference(ref);
+      setReference(ref ?? transRef ?? "");
 
       try {
-        const response = await fetch(`/api/payment/verify?reference=${ref}`);
+        const params = new URLSearchParams();
+        if (ref) params.set("reference", ref);
+        if (transRef) params.set("transRef", transRef);
+
+        const response = await fetch(`/api/payment/verify?${params.toString()}`);
 
         if (!response.ok) {
           setStatus("failed");
@@ -37,8 +46,10 @@ export default function PaymentVerifyClient() {
 
         if (data.status === "success") {
           setStatus("success");
+          setReference(data.reference);
           // Clear cart after successful payment
           cart.clearCart();
+          router.replace(`/thank-you?ref=${encodeURIComponent(data.reference)}&paid=1`);
         } else {
           setStatus("failed");
         }
@@ -49,7 +60,7 @@ export default function PaymentVerifyClient() {
     }
 
     verifyPayment();
-  }, [searchParams, cart]);
+  }, [searchParams, router, cart]);
 
   if (status === "verifying") {
     return (
@@ -102,7 +113,7 @@ export default function PaymentVerifyClient() {
               </div>
             ) : null}
             <p className="text-body text-ink/60 mb-8">
-              We'll send you an email confirmation shortly with your order details and
+              We&apos;ll send you an email confirmation shortly with your order details and
               delivery information.
             </p>
             <Button href="/shop" variant="filled">
@@ -137,7 +148,7 @@ export default function PaymentVerifyClient() {
             Payment Failed
           </h1>
           <p className="text-body text-ink/60 mb-8">
-            We couldn't verify your payment. Your order has not been processed.
+            We couldn&apos;t verify your payment. Your order has not been processed.
           </p>
           <div className="flex gap-4 justify-center">
             <Button

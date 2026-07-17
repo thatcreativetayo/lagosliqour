@@ -14,9 +14,35 @@ import BankTransferModal from "@/components/checkout/BankTransferModal";
 const DELIVERY_FEE = 2000;
 const FREE_DELIVERY_THRESHOLD = 50000;
 
+async function readApiResponse(response: Response) {
+  const text = await response.text();
+
+  if (!text) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(text) as Record<string, unknown>;
+  } catch {
+    return { error: text };
+  }
+}
+
+function getApiErrorMessage(data: Record<string, unknown>, fallback: string) {
+  for (const key of ["message", "error", "details", "setup"]) {
+    const value = data[key];
+
+    if (typeof value === "string" && value.trim()) {
+      return value;
+    }
+  }
+
+  return fallback;
+}
+
 export default function CheckoutClient() {
   const router = useRouter();
-  const { user, isLoaded, isSignedIn } = useUser();
+  const { isLoaded, isSignedIn } = useUser();
   const cart = useCartStore();
   const [submitting, setSubmitting] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"online" | "transfer">("transfer");
@@ -36,10 +62,11 @@ export default function CheckoutClient() {
   });
 
   useEffect(() => {
-    if (cart.items.length === 0) {
+    // Don't redirect if we're currently processing an order
+    if (cart.items.length === 0 && !submitting && !showBankModal) {
       router.push("/shop");
     }
-  }, [cart.items.length, router]);
+  }, [cart.items.length, router, submitting, showBankModal]);
 
   // Show loading state
   if (!isLoaded) {
@@ -104,6 +131,7 @@ export default function CheckoutClient() {
         subtotal: cart.subtotal,
         deliveryFee,
         total,
+        paymentMethod,
       };
 
       console.log("Creating order with data:", { 
@@ -119,12 +147,19 @@ export default function CheckoutClient() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await readApiResponse(response);
         console.error("Order creation failed:", errorData);
-        throw new Error(errorData.message || "Failed to create order");
+        throw new Error(getApiErrorMessage(errorData, "Failed to create order"));
       }
 
-      const { orderId, reference } = await response.json();
+      const orderResult = await readApiResponse(response);
+      const orderId = orderResult.orderId;
+      const reference = orderResult.reference;
+
+      if (typeof orderId !== "string" || typeof reference !== "string") {
+        throw new Error("Order response was missing its reference. Please try again.");
+      }
+
       console.log("Order created successfully:", { orderId, reference });
       
       setOrderReference(reference);
@@ -150,11 +185,19 @@ export default function CheckoutClient() {
         });
 
         if (!paymentResponse.ok) {
-          throw new Error("Failed to initiate payment");
+          const paymentError = await readApiResponse(paymentResponse);
+          console.error("Payment initiation failed:", paymentError);
+          throw new Error(getApiErrorMessage(paymentError, "Failed to initiate payment"));
         }
 
-        const { authorizationUrl } = await paymentResponse.json();
-        window.location.href = authorizationUrl;
+        const paymentResult = await readApiResponse(paymentResponse);
+        const authorizationUrl = paymentResult.authorizationUrl;
+
+        if (typeof authorizationUrl !== "string") {
+          throw new Error("Payment response was missing its checkout link. Please try again.");
+        }
+
+        window.location.assign(authorizationUrl);
       }
     } catch (error) {
       console.error("Checkout error:", error);
@@ -408,17 +451,17 @@ export default function CheckoutClient() {
                           </span>
                         </div>
                         <p className="text-xs text-ink/60 mt-1">
-                          Pay directly to our bank account. We'll process your order once payment is confirmed.
+                          Pay directly to our bank account. We&apos;ll process your order once payment is confirmed.
                         </p>
                       </div>
                     </div>
                   </label>
 
                   <label
-                    className={`border-2 p-4 cursor-not-allowed opacity-50 ${
+                    className={`border-2 p-4 cursor-pointer transition-all ${
                       paymentMethod === "online"
                         ? "border-wine bg-wine/5"
-                        : "border-wine/20"
+                        : "border-wine/20 hover:border-wine/40"
                     }`}
                   >
                     <div className="flex items-start gap-3">
@@ -426,7 +469,6 @@ export default function CheckoutClient() {
                         type="radio"
                         name="paymentMethod"
                         value="online"
-                        disabled
                         checked={paymentMethod === "online"}
                         onChange={(e) => setPaymentMethod(e.target.value as "online" | "transfer")}
                         className="mt-1"
@@ -434,12 +476,12 @@ export default function CheckoutClient() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <span className="text-dark font-medium">Online Payment</span>
-                          <span className="text-xs bg-ink/20 text-dark px-2 py-0.5 uppercase">
-                            Unavailable
+                          <span className="text-xs bg-ink/10 text-dark px-2 py-0.5 uppercase">
+                            Credopal
                           </span>
                         </div>
                         <p className="text-xs text-ink/60 mt-1">
-                          Currently unavailable due to technical issues.
+                          Pay securely with cards, USSD, or bank transfer via Credopal.
                         </p>
                       </div>
                     </div>

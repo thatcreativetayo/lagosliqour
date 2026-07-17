@@ -1,15 +1,9 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { supabaseServer } from "@/lib/supabase/server";
+import { groq, sanityFetch } from "@/lib/sanity/client";
 
 export async function GET(request: Request) {
   try {
-    // Validate environment variables at runtime
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      console.error("Missing Supabase configuration");
-      return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
-    }
-
     const { userId } = await auth();
 
     if (!userId) {
@@ -23,16 +17,28 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Email required" }, { status: 400 });
     }
 
-    const { data: orders, error } = await supabaseServer
-      .from("orders")
-      .select("*")
-      .eq("customer_email", email)
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error("Failed to fetch orders:", error);
-      return NextResponse.json({ error: "Failed to fetch orders" }, { status: 500 });
-    }
+    const orders = await sanityFetch({
+      query: groq`*[_type == "order" && customerEmail == $email] | order(orderDate desc) {
+        "id": _id,
+        reference,
+        status,
+        "customer_name": customerName,
+        "customer_email": customerEmail,
+        "customer_phone": customerPhone,
+        "state": deliveryAddress.state,
+        "city": deliveryAddress.city,
+        "street_address": deliveryAddress.streetAddress,
+        "landmark": deliveryAddress.landmark,
+        "delivery_notes": deliveryNotes,
+        subtotal,
+        "delivery_fee": deliveryFee,
+        total,
+        items,
+        "created_at": orderDate
+      }`,
+      params: { email },
+      revalidate: 0,
+    });
 
     return NextResponse.json({ orders: orders || [] });
   } catch (error) {
