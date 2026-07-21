@@ -21,19 +21,42 @@ interface SanityOrder {
   deliveryFee: number;
   total: number;
   orderDate: string;
+  paymentStatus?: string;
 }
 
 const defaultCredoBaseUrl = "https://api.credocentral.com";
 
+function getFirstParam(searchParams: URLSearchParams, names: string[]) {
+  for (const name of names) {
+    const value = searchParams.get(name);
+    if (value) return value;
+  }
+
+  return null;
+}
+
+function toKobo(amount: number) {
+  return Math.round(amount * 100);
+}
+
+function isSuccessfulCredoStatus(status: unknown) {
+  return status === 0 || status === "0";
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const callbackReference = searchParams.get("reference");
-    const callbackTransRef =
-      searchParams.get("transRef") ??
-      searchParams.get("transref") ??
-      searchParams.get("credoReference") ??
-      searchParams.get("credo_reference");
+    const callbackReference = getFirstParam(searchParams, [
+      "reference",
+      "businessRef",
+      "business_ref",
+    ]);
+    const callbackTransRef = getFirstParam(searchParams, [
+      "transRef",
+      "transref",
+      "credoReference",
+      "credo_reference",
+    ]);
 
     if (!callbackReference && !callbackTransRef) {
       return NextResponse.json(
@@ -68,7 +91,8 @@ export async function GET(request: Request) {
         subtotal,
         deliveryFee,
         total,
-        orderDate
+        orderDate,
+        paymentStatus
       }`,
       params: {
         reference: callbackReference ?? "",
@@ -85,6 +109,14 @@ export async function GET(request: Request) {
     }
 
     const transRef = callbackTransRef ?? order.credoReference;
+
+    if (order.paymentStatus === "paid") {
+      return NextResponse.json({
+        status: "success",
+        reference: order.reference,
+        alreadyProcessed: true,
+      });
+    }
 
     if (!transRef) {
       return NextResponse.json(
@@ -105,20 +137,27 @@ export async function GET(request: Request) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Credo verification error:", errorText);
+      console.error("Credo verification error:", response.status, errorText);
       return NextResponse.json(
-        { error: "Payment verification failed" },
-        { status: 500 }
+        {
+          error: "Payment verification failed",
+          statusCode: response.status,
+        },
+        { status: 502 }
       );
     }
 
     const data = await response.json();
+    const paymentData = data.data ?? {};
+    const expectedAmount = toKobo(order.total);
+    const actualAmount = Number(paymentData.transAmount ?? paymentData.amount);
+    const gatewayReference = paymentData.businessRef ?? paymentData.reference;
     const isPaid =
       data.status === 200 &&
-      data.data?.status === 0 &&
-      data.data?.businessRef === order.reference &&
-      data.data?.currencyCode === "NGN" &&
-      Number(data.data?.transAmount) === Math.round(order.total * 100);
+      isSuccessfulCredoStatus(paymentData.status) &&
+      gatewayReference === order.reference &&
+      paymentData.currencyCode === "NGN" &&
+      actualAmount === expectedAmount;
 
     if (isPaid) {
       // Update order status to confirmed
@@ -179,9 +218,19 @@ export async function GET(request: Request) {
       return NextResponse.json({
         status: "success",
         reference: order.reference,
-        data: data.data,
+        data: paymentData,
       });
     }
+
+    console.error("Credo verification mismatch:", {
+      reference: order.reference,
+      transRef,
+      gatewayReference,
+      expectedAmount,
+      actualAmount,
+      currencyCode: paymentData.currencyCode,
+      paymentStatus: paymentData.status,
+    });
 
     await sanityWriteClient
       .patch(order._id)

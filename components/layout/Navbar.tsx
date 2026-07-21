@@ -14,7 +14,6 @@ import {
 import Image from "next/image";
 import { useCartStore } from "@/lib/stores/cart";
 import { SignInButton, SignUpButton, UserButton, useUser } from "@clerk/nextjs";
-import { getCategories, getAllWinesForSearch } from "@/lib/sanity/queries";
 import SearchBar from "@/components/ui/SearchBar";
 import type { SanityCategory, WineCardResult } from "@/lib/sanity/types";
 
@@ -52,8 +51,32 @@ export default function Navbar() {
   const { isSignedIn } = useUser();
 
   useEffect(() => {
-    getCategories().then(setCategories);
-    getAllWinesForSearch().then(setWines);
+    let cancelled = false;
+
+    async function loadCatalog() {
+      try {
+        const response = await fetch("/api/catalog");
+        if (!response.ok) return;
+
+        const data = (await response.json()) as {
+          categories?: SanityCategory[];
+          wines?: WineCardResult[];
+        };
+
+        if (!cancelled) {
+          setCategories(data.categories ?? []);
+          setWines(data.wines ?? []);
+        }
+      } catch (error) {
+        console.error("Failed to load catalog data:", error);
+      }
+    }
+
+    loadCatalog();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useMotionValueEvent(scrollY, "change", (latest) => {

@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import ProductCard from "@/components/ui/ProductCard";
 import Button from "@/components/ui/Button";
 import { useLikedStore } from "@/lib/stores/liked";
-import { getLikedWines } from "@/lib/sanity/queries";
 import type { WineCardResult } from "@/lib/sanity/types";
 
 export default function LikedClient() {
@@ -21,8 +20,14 @@ export default function LikedClient() {
       }
 
       try {
-        const data = await getLikedWines(liked.ids);
-        setWines(data);
+        const params = new URLSearchParams({ ids: liked.ids.join(",") });
+        const response = await fetch(`/api/liked-wines?${params.toString()}`);
+        if (!response.ok) {
+          throw new Error("Liked wines request failed");
+        }
+
+        const data = (await response.json()) as { wines?: WineCardResult[] };
+        setWines(data.wines ?? []);
       } catch (error) {
         console.error("Failed to fetch liked wines:", error);
         setWines([]);
