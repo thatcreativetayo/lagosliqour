@@ -50,7 +50,7 @@ export async function POST(request: Request) {
     const credoSecretKey = process.env.CREDO_SECRET_KEY;
     const credoPublicKey = process.env.CREDO_PUBLIC_KEY;
     const credoBaseUrl = process.env.CREDO_BASE_URL ?? defaultCredoBaseUrl;
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+    const baseUrl = "https://lagosliquor.com";
 
     if (!credoSecretKey || !credoPublicKey) {
       return NextResponse.json(

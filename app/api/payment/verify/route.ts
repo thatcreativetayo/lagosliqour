@@ -150,7 +150,7 @@ export async function GET(request: Request) {
 
       // Send confirmation emails
       try {
-        await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/orders/send-confirmation`, {
+        await fetch(`https://lagosliquor.com/api/orders/send-confirmation`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
