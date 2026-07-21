@@ -18,7 +18,7 @@ import {
   Truck,
 } from "@phosphor-icons/react";
 import Hero from "./Hero";
-import { urlFor } from "@/lib/sanity/client";
+import { urlFor } from "@/lib/sanity/image";
 import type { WineCardResult, SanityCategory } from "@/lib/sanity/types";
 import { useCartStore } from "@/lib/stores/cart";
 

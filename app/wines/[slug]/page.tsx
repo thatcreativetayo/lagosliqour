@@ -8,7 +8,7 @@ import LikeButton from "@/components/ui/LikeButton";
 import Tag from "@/components/ui/Tag";
 import ProductCard from "@/components/ui/ProductCard";
 import StructuredData, { productData, breadcrumbData } from "@/components/seo/StructuredData";
-import { urlFor } from "@/lib/sanity/client";
+import { urlFor } from "@/lib/sanity/image";
 import { getAllWines, getWineBySlug, getCategories } from "@/lib/sanity/queries";
 import type { SanityImage, WineDetailResult } from "@/lib/sanity/types";
 

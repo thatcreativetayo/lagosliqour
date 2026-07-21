@@ -4,7 +4,7 @@ import { m } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import type { WineCardResult } from "@/lib/sanity/types";
-import { urlFor } from "@/lib/sanity/client";
+import { urlFor } from "@/lib/sanity/image";
 import { useCartStore } from "@/lib/stores/cart";
 import { useLikedStore } from "@/lib/stores/liked";
 import type { Wine } from "@/lib/types/wine";

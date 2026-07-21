@@ -5,7 +5,7 @@ import { m } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { ShoppingBag, Eye, CheckCircle } from "@phosphor-icons/react";
-import { urlFor } from "@/lib/sanity/client";
+import { urlFor } from "@/lib/sanity/image";
 import type { WineCardResult } from "@/lib/sanity/types";
 import { useCartStore } from "@/lib/stores/cart";
 
