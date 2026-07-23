@@ -24,7 +24,7 @@ interface SanityOrder {
   paymentStatus?: string;
 }
 
-const defaultCredoBaseUrl = "https://api.credodemo.com";
+const defaultCredoBaseUrl = "https://api.credocentral.com";
 
 function getFirstParam(searchParams: URLSearchParams, names: string[]) {
   for (const name of names) {
