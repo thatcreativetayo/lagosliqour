@@ -13,6 +13,7 @@ export default function PaymentVerifyClient() {
   const cart = useCartStore();
   const [status, setStatus] = useState<PaymentStatus>("verifying");
   const [reference, setReference] = useState<string>("");
+  const [failureMessage, setFailureMessage] = useState<string>("");
 
   useEffect(() => {
     async function verifyPayment() {
@@ -24,6 +25,7 @@ export default function PaymentVerifyClient() {
         searchParams.get("credo_reference");
 
       if (!ref && !transRef) {
+        setFailureMessage("Missing payment reference from the gateway.");
         setStatus("failed");
         return;
       }
@@ -36,13 +38,14 @@ export default function PaymentVerifyClient() {
         if (transRef) params.set("transRef", transRef);
 
         const response = await fetch(`/api/payment/verify?${params.toString()}`);
+        const data = await response.json().catch(() => null);
 
         if (!response.ok) {
+          console.error("Payment verification failed:", data);
+          setFailureMessage(data?.error ?? "Payment verification failed.");
           setStatus("failed");
           return;
         }
-
-        const data = await response.json();
 
         if (data.status === "success") {
           setStatus("success");
@@ -51,6 +54,8 @@ export default function PaymentVerifyClient() {
           cart.clearCart();
           router.replace(`/thank-you?ref=${encodeURIComponent(data.reference)}&paid=1`);
         } else {
+          console.error("Payment verification rejected:", data);
+          setFailureMessage(data.message ?? "Payment was not successful.");
           setStatus("failed");
         }
       } catch (error) {
@@ -148,7 +153,7 @@ export default function PaymentVerifyClient() {
             Payment Failed
           </h1>
           <p className="text-body text-ink/60 mb-8">
-            We couldn&apos;t verify your payment. Your order has not been processed.
+            {failureMessage || "We couldn't verify your payment. Your order has not been processed."}
           </p>
           <div className="flex gap-4 justify-center">
             <Button

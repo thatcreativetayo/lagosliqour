@@ -24,7 +24,7 @@ interface SanityOrder {
   paymentStatus?: string;
 }
 
-const defaultCredoBaseUrl = "https://api.credocentral.com";
+const defaultCredoBaseUrl = "https://api.credodemo.com";
 
 function getFirstParam(searchParams: URLSearchParams, names: string[]) {
   for (const name of names) {
@@ -35,12 +35,13 @@ function getFirstParam(searchParams: URLSearchParams, names: string[]) {
   return null;
 }
 
-function toKobo(amount: number) {
-  return Math.round(amount * 100);
-}
-
 function isSuccessfulCredoStatus(status: unknown) {
   return status === 0 || status === "0";
+}
+
+function normalizeAmount(amount: unknown) {
+  const value = Number(amount);
+  return Number.isFinite(value) ? Math.round(value) : NaN;
 }
 
 export async function GET(request: Request) {
@@ -149,14 +150,15 @@ export async function GET(request: Request) {
 
     const data = await response.json();
     const paymentData = data.data ?? {};
-    const expectedAmount = toKobo(order.total);
-    const actualAmount = Number(paymentData.transAmount ?? paymentData.amount);
+    const expectedAmount = normalizeAmount(order.total);
+    const actualAmount = normalizeAmount(paymentData.transAmount ?? paymentData.amount);
     const gatewayReference = paymentData.businessRef ?? paymentData.reference;
+    const currencyCode = paymentData.currencyCode ?? paymentData.currency;
     const isPaid =
       data.status === 200 &&
       isSuccessfulCredoStatus(paymentData.status) &&
       gatewayReference === order.reference &&
-      paymentData.currencyCode === "NGN" &&
+      currencyCode === "NGN" &&
       actualAmount === expectedAmount;
 
     if (isPaid) {
@@ -228,7 +230,7 @@ export async function GET(request: Request) {
       gatewayReference,
       expectedAmount,
       actualAmount,
-      currencyCode: paymentData.currencyCode,
+      currencyCode,
       paymentStatus: paymentData.status,
     });
 

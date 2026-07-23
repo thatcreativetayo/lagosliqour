@@ -158,7 +158,7 @@ function generateOrderEmailHTML(data: OrderConfirmationData): string {
           <tr>
             <td style="padding: 30px 40px; text-align: center; border-top: 1px solid #6d1b1a; background-color: #291315;">
               <p style="margin: 0 0 10px; color: #efece4; font-size: 12px;">
-                © 2024 Lagos Liquor. All rights reserved.
+                © 2026 Lagos Liquor. All rights reserved.
               </p>
               <p style="margin: 0; color: #efece4; font-size: 12px; opacity: 0.7;">
                 Premium wines and spirits delivered across Lagos.
