@@ -11,8 +11,8 @@ import { checkoutSchema, NIGERIAN_STATES, type CheckoutFormData } from "@/lib/va
 import type { CreateOrderRequest } from "@/app/api/orders/route";
 import BankTransferModal from "@/components/checkout/BankTransferModal";
 
-const DELIVERY_FEE = 0;
-const FREE_DELIVERY_THRESHOLD = 0;
+const DELIVERY_FEE = 1;
+const FREE_DELIVERY_THRESHOLD = 1;
 
 async function readApiResponse(response: Response) {
   const text = await response.text();
