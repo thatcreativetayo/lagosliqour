@@ -17,7 +17,10 @@ export default function PaymentVerifyClient() {
 
   useEffect(() => {
     async function verifyPayment() {
-      const ref = searchParams.get("reference");
+      const ref =
+        searchParams.get("reference") ??
+        searchParams.get("businessRef") ??
+        searchParams.get("business_ref");
       const transRef =
         searchParams.get("transRef") ??
         searchParams.get("transref") ??
@@ -33,9 +36,9 @@ export default function PaymentVerifyClient() {
       setReference(ref ?? transRef ?? "");
 
       try {
-        const params = new URLSearchParams();
-        if (ref) params.set("reference", ref);
-        if (transRef) params.set("transRef", transRef);
+        const params = new URLSearchParams(searchParams.toString());
+        if (ref && !params.has("reference")) params.set("reference", ref);
+        if (transRef && !params.has("transRef")) params.set("transRef", transRef);
 
         const response = await fetch(`/api/payment/verify?${params.toString()}`);
         const data = await response.json().catch(() => null);

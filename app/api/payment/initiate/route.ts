@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getSiteUrl } from "@/lib/site-url";
 import { sanityWriteClient } from "@/lib/sanity/write-client";
 
 export interface InitiatePaymentRequest {
@@ -50,7 +51,7 @@ export async function POST(request: Request) {
     const credoSecretKey = process.env.CREDO_SECRET_KEY;
     const credoPublicKey = process.env.CREDO_PUBLIC_KEY;
     const credoBaseUrl = process.env.CREDO_BASE_URL ?? defaultCredoBaseUrl;
-    const baseUrl = "https://lagosliquor.com";
+    const baseUrl = getSiteUrl();
 
     if (!credoSecretKey || !credoPublicKey) {
       return NextResponse.json(
