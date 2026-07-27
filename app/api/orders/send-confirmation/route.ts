@@ -327,7 +327,7 @@ export async function POST(request: Request) {
    // Send copy to store
     await resend.emails.send({
       from: "Lagos Liquor <orders@lagosliquor.com>",
-      to: "lagosliquor@yahoo.com",
+      to: "abiodunariyo2018@gmail.com",
       subject: `New Order - ${data.reference}`,
       html: generateStoreNotificationEmailHTML(data),
     });
