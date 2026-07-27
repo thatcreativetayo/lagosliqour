@@ -151,6 +151,13 @@ export const orderSchema = defineType({
       readOnly: true,
     }),
     defineField({
+      name: "paymentAmountKobo",
+      title: "Payment Amount (Kobo)",
+      type: "number",
+      readOnly: true,
+      description: "Exact amount sent to Credo during payment initialization",
+    }),
+    defineField({
       name: "paidAt",
       title: "Paid At",
       type: "datetime",

@@ -123,18 +123,19 @@ export async function POST(request: Request) {
       );
     }
 
-    if (data.data.credoReference) {
-      try {
-        await sanityWriteClient
-          .patch(body.orderId)
-          .set({
-            credoReference: data.data.credoReference,
-            paymentStatus: "initiated",
-          })
-          .commit();
-      } catch (sanityError) {
-        console.error("Failed to store Credo reference on Sanity order:", sanityError);
-      }
+    try {
+      await sanityWriteClient
+        .patch(body.orderId)
+        .set({
+          paymentStatus: "initiated",
+          paymentAmountKobo: amountInKobo,
+          ...(data.data.credoReference
+            ? { credoReference: data.data.credoReference }
+            : {}),
+        })
+        .commit();
+    } catch (sanityError) {
+      console.error("Failed to store Credo payment details on Sanity order:", sanityError);
     }
 
     return NextResponse.json({

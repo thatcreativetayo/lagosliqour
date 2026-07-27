@@ -16,7 +16,9 @@ export default function PaymentVerifyClient() {
   const [failureMessage, setFailureMessage] = useState<string>("");
 
   useEffect(() => {
-    async function verifyPayment() {
+    let cancelled = false;
+
+    async function verifyPayment(attempt = 0) {
       const ref =
         searchParams.get("reference") ??
         searchParams.get("businessRef") ??
@@ -34,6 +36,7 @@ export default function PaymentVerifyClient() {
       }
 
       setReference(ref ?? transRef ?? "");
+      setStatus("verifying");
 
       try {
         const params = new URLSearchParams(searchParams.toString());
@@ -42,6 +45,8 @@ export default function PaymentVerifyClient() {
 
         const response = await fetch(`/api/payment/verify?${params.toString()}`);
         const data = await response.json().catch(() => null);
+
+        if (cancelled) return;
 
         if (!response.ok) {
           console.error("Payment verification failed:", data);
@@ -53,21 +58,43 @@ export default function PaymentVerifyClient() {
         if (data.status === "success") {
           setStatus("success");
           setReference(data.reference);
-          // Clear cart after successful payment
           cart.clearCart();
           router.replace(`/thank-you?ref=${encodeURIComponent(data.reference)}&paid=1`);
-        } else {
-          console.error("Payment verification rejected:", data);
-          setFailureMessage(data.message ?? "Payment was not successful.");
-          setStatus("failed");
+          return;
         }
+
+        if (data.status === "pending" && attempt < 4) {
+          await new Promise((resolve) => setTimeout(resolve, 3000));
+          if (!cancelled) {
+            await verifyPayment(attempt + 1);
+          }
+          return;
+        }
+
+        if (data.status === "pending") {
+          setFailureMessage(
+            data.message ??
+              "Payment is still processing. Please wait a moment and refresh this page."
+          );
+          setStatus("failed");
+          return;
+        }
+
+        console.error("Payment verification rejected:", data);
+        setFailureMessage(data.message ?? "Payment was not successful.");
+        setStatus("failed");
       } catch (error) {
+        if (cancelled) return;
         console.error("Verification error:", error);
         setStatus("failed");
       }
     }
 
     verifyPayment();
+
+    return () => {
+      cancelled = true;
+    };
   }, [searchParams, router, cart]);
 
   if (status === "verifying") {

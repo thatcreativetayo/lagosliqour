@@ -20,6 +20,7 @@ export interface OrderRecord {
   total: number;
   orderDate: string;
   paymentStatus?: string;
+  paymentAmountKobo?: number;
   orderStore: "sanity" | "supabase";
 }
 
@@ -39,7 +40,8 @@ const sanityOrderQuery = groq`*[_type == "order" && (
   deliveryFee,
   total,
   orderDate,
-  paymentStatus
+  paymentStatus,
+  paymentAmountKobo
 }`;
 
 async function findSanityOrder(reference: string, transRef: string) {

@@ -1,21 +1,16 @@
 import { NextResponse } from "next/server";
+import {
+  fetchCredoTransaction,
+  getFailureMessage,
+  isFailedCredoStatus,
+  isPendingCredoStatus,
+  validateCredoPayment,
+  type CredoPaymentData,
+} from "@/lib/credo/verify";
 import { findOrderByReferenceOrTransRef, type OrderRecord } from "@/lib/orders/lookup";
 import { getSiteUrl } from "@/lib/site-url";
 import { supabaseServer } from "@/lib/supabase/server";
 import { sanityWriteClient } from "@/lib/sanity/write-client";
-
-const defaultCredoBaseUrl = "https://api.credocentral.com";
-
-interface CredoPaymentData {
-  transRef?: string;
-  businessRef?: string;
-  reference?: string;
-  transAmount?: number;
-  amount?: number;
-  currencyCode?: string;
-  currency?: string;
-  status?: number | string;
-}
 
 function getFirstParam(searchParams: URLSearchParams, names: string[]) {
   for (const name of names) {
@@ -24,48 +19,6 @@ function getFirstParam(searchParams: URLSearchParams, names: string[]) {
   }
 
   return null;
-}
-
-function isSuccessfulCredoStatus(status: unknown) {
-  return status === 0 || status === "0";
-}
-
-function normalizeAmount(amount: unknown) {
-  const value = Number(amount);
-  return Number.isFinite(value) ? Math.round(value) : NaN;
-}
-
-async function fetchCredoTransaction(transRef: string) {
-  const credoSecretKey = process.env.CREDO_SECRET_KEY;
-  const credoBaseUrl = process.env.CREDO_BASE_URL ?? defaultCredoBaseUrl;
-
-  if (!credoSecretKey) {
-    return { ok: false as const, status: 500, error: "Payment gateway not configured" };
-  }
-
-  const response = await fetch(`${credoBaseUrl}/transaction/${transRef}/verify`, {
-    method: "GET",
-    headers: {
-      Authorization: credoSecretKey,
-    },
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error("Credo verification error:", response.status, errorText);
-    return {
-      ok: false as const,
-      status: response.status,
-      error: "Payment verification failed",
-    };
-  }
-
-  const data = await response.json();
-  return {
-    ok: true as const,
-    payload: data,
-    paymentData: (data.data ?? {}) as CredoPaymentData,
-  };
 }
 
 async function markOrderPaid(order: OrderRecord, transRef: string, paymentData: CredoPaymentData) {
@@ -170,7 +123,7 @@ export async function GET(request: Request) {
       }
 
       paymentData = credoResult.paymentData;
-      const businessRef = paymentData.businessRef ?? paymentData.reference ?? callbackReference;
+      const businessRef = paymentData.businessRef ?? callbackReference;
 
       if (businessRef) {
         order = await findOrderByReferenceOrTransRef(businessRef, transRef);
@@ -181,7 +134,7 @@ export async function GET(request: Request) {
       console.error("Order not found during payment verification:", {
         callbackReference,
         callbackTransRef,
-        businessRefFromGateway: paymentData?.businessRef ?? paymentData?.reference,
+        businessRefFromGateway: paymentData?.businessRef,
       });
 
       return NextResponse.json(
@@ -198,7 +151,7 @@ export async function GET(request: Request) {
       });
     }
 
-    transRef = transRef ?? order.credoReference ?? null;
+    transRef = transRef ?? order.credoReference ?? paymentData?.transRef ?? null;
 
     if (!transRef) {
       return NextResponse.json(
@@ -223,44 +176,53 @@ export async function GET(request: Request) {
       paymentData = credoResult.paymentData;
     }
 
-    const expectedAmount = normalizeAmount(order.total * 100);
-    const actualAmount = normalizeAmount(paymentData.transAmount ?? paymentData.amount);
-    const gatewayReference = paymentData.businessRef ?? paymentData.reference;
-    const currencyCode = paymentData.currencyCode ?? paymentData.currency;
-    const isPaid =
-      isSuccessfulCredoStatus(paymentData.status) &&
-      gatewayReference === order.reference &&
-      currencyCode === "NGN" &&
-      actualAmount === expectedAmount;
+    const validation = validateCredoPayment(
+      paymentData,
+      order.total,
+      order.paymentAmountKobo
+    );
 
-    if (isPaid) {
+    if (validation.isPaid) {
       return markOrderPaid(order, transRef, paymentData);
     }
 
     console.error("Credo verification mismatch:", {
       reference: order.reference,
       transRef,
-      gatewayReference,
-      expectedAmount,
-      actualAmount,
-      currencyCode,
-      paymentStatus: paymentData.status,
+      ...validation.checks,
+      paymentData,
     });
 
-    if (order.orderStore === "sanity") {
-      await sanityWriteClient
-        .patch(order._id)
-        .set({
-          paymentStatus: "failed",
-          credoReference: transRef,
-        })
-        .commit();
+    if (validation.isPending || isPendingCredoStatus(paymentData.status)) {
+      return NextResponse.json({
+        status: "pending",
+        reference: order.reference,
+        message: "Payment is still processing. Please wait a moment and refresh this page.",
+      });
+    }
+
+    if (validation.isFailed || isFailedCredoStatus(paymentData.status)) {
+      if (order.orderStore === "sanity") {
+        await sanityWriteClient
+          .patch(order._id)
+          .set({
+            paymentStatus: "failed",
+            credoReference: transRef,
+          })
+          .commit();
+      }
+
+      return NextResponse.json({
+        status: "failed",
+        reference: order.reference,
+        message: getFailureMessage(validation.checks),
+      });
     }
 
     return NextResponse.json({
-      status: "failed",
+      status: "pending",
       reference: order.reference,
-      message: "Payment was not successful",
+      message: getFailureMessage(validation.checks),
     });
   } catch (error) {
     console.error("Payment verification error:", error);
