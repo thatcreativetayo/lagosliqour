@@ -66,12 +66,21 @@ export async function generateMetadata({ params }: WinePageProps): Promise<Metad
     };
   }
 
-  const ogImage = wine.images?.[0] ? imageUrl(wine.images[0], 1200) : "/product1.png";
+  // Prefer per-product SEO overrides, else fall back to derived values.
+  const seo = wine.seo;
+  const title = seo?.metaTitle || `${wine.title} | Lagos Liquor`;
+  const description =
+    seo?.metaDescription || wine.description || `Premium ${wine.title} from Lagos Liquor`;
+  const ogImage = seo?.ogImage
+    ? imageUrl(seo.ogImage, 1200)
+    : wine.images?.[0]
+      ? imageUrl(wine.images[0], 1200)
+      : "/product1.png";
   const productUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://lagosliquor.com"}/wines/${wine.slug}`;
 
   return {
-    title: `${wine.title} | Lagos Liquor`,
-    description: wine.description || `Premium ${wine.title} from Lagos Liquor`,
+    title,
+    description,
     keywords: [
       wine.title,
       wine.region,
@@ -82,15 +91,15 @@ export async function generateMetadata({ params }: WinePageProps): Promise<Metad
       wine.tastingNotes?.join(", "),
     ].filter(Boolean).join(", "),
     openGraph: {
-      title: `${wine.title} | Lagos Liquor`,
-      description: wine.description || `Premium ${wine.title} from Lagos Liquor`,
+      title,
+      description,
       url: productUrl,
       images: ogImage ? [{ url: ogImage, width: 1200, height: 630, alt: wine.images?.[0]?.alt || wine.title }] : [],
     },
     twitter: {
       card: "summary_large_image",
-      title: `${wine.title} | Lagos Liquor`,
-      description: wine.description || `Premium ${wine.title} from Lagos Liquor`,
+      title,
+      description,
       images: ogImage ? [ogImage] : [],
     },
     alternates: {
@@ -116,6 +125,7 @@ export default async function WinePage({ params }: WinePageProps) {
 
   const structuredData = productData({
     title: wine.title,
+    slug: wine.slug,
     description: wine.description,
     price: wine.price,
     image: images[0]?.src || "",

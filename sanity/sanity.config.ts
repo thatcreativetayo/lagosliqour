@@ -2,6 +2,10 @@ import { defineConfig } from "sanity";
 import { structureTool } from "sanity/structure";
 import { visionTool } from "@sanity/vision";
 import { schemaTypes } from "./schemas";
+import { notifyStatusAction } from "./actions/notifyStatusAction";
+
+const SINGLETON_TYPES = new Set(["siteSettings"]);
+const SINGLETON_ACTIONS = new Set(["publish", "discardChanges", "restore"]);
 
 const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "";
 const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || "production";
@@ -58,12 +62,45 @@ export default defineConfig({
                   ])
               ),
             S.divider(),
-            ...S.documentTypeListItems().filter((item) => item.getId() !== "order"),
+            // Singleton: Site Settings (single editable document)
+            S.listItem()
+              .title("Site Settings")
+              .id("siteSettings")
+              .child(
+                S.document()
+                  .schemaType("siteSettings")
+                  .documentId("siteSettings")
+                  .title("Site Settings")
+              ),
+            S.divider(),
+            ...S.documentTypeListItems().filter(
+              (item) =>
+                item.getId() !== "order" &&
+                !SINGLETON_TYPES.has(item.getId() ?? "")
+            ),
           ]),
     }),
     visionTool(),
   ],
+  document: {
+    actions: (prev, context) => {
+      if (SINGLETON_TYPES.has(context.schemaType)) {
+        // Singletons cannot be created, deleted, duplicated or unpublished.
+        return prev.filter(
+          (action) =>
+            typeof action.action === "string" &&
+            SINGLETON_ACTIONS.has(action.action)
+        );
+      }
+      if (context.schemaType === "order") {
+        return [...prev, notifyStatusAction];
+      }
+      return prev;
+    },
+  },
   schema: {
     types: schemaTypes,
+    templates: (templates) =>
+      templates.filter((t) => !SINGLETON_TYPES.has(t.schemaType)),
   },
 });

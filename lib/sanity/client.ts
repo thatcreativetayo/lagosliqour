@@ -13,6 +13,7 @@ export function groq(strings: TemplateStringsArray, ...values: unknown[]) {
 export async function sanityFetch<T>({
   query,
   params = {},
+  revalidate,
 }: {
   query: string;
   params?: SanityParams;
@@ -36,18 +37,20 @@ export async function sanityFetch<T>({
   console.log(`[Sanity] Fetching from: ${url.toString()}`);
 
   const headers: HeadersInit = {};
-  
+
   // Add token for authenticated server-side requests if available.
   const token = process.env.SANITY_API_WRITE_TOKEN;
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(url, { 
-    next: { revalidate: 0 },
-    cache: 'no-store',
-    headers
-  });
+  // Honor the caller's revalidate window when provided; otherwise stay fresh.
+  const fetchOptions: RequestInit & { next?: { revalidate: number } } =
+    typeof revalidate === "number"
+      ? { next: { revalidate }, headers }
+      : { next: { revalidate: 0 }, cache: "no-store", headers };
+
+  const response = await fetch(url, fetchOptions);
 
   if (!response.ok) {
     const errorText = await response.text();

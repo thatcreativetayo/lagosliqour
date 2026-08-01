@@ -176,6 +176,21 @@ export const orderSchema = defineType({
       rows: 4,
       description: "Private notes for store management",
     }),
+    defineField({
+      name: "lastNotifiedStatus",
+      title: "Last Notified Status",
+      type: "string",
+      readOnly: true,
+      description:
+        "The order status the customer was last emailed about (set automatically by the Notify customer action).",
+    }),
+    defineField({
+      name: "lastNotifiedAt",
+      title: "Last Notified At",
+      type: "datetime",
+      readOnly: true,
+      description: "When the last status-update email was sent to the customer.",
+    }),
   ],
   preview: {
     select: {

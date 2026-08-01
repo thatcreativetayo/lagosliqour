@@ -1,21 +1,16 @@
 import { getAllWines, getCategories } from "@/lib/sanity/queries";
 import ShopClient from "./ShopClient";
 import type { Metadata } from "next";
+import { buildPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Shop | Lagos Liquor",
-  description:
-    "Browse our full collection of premium wines and spirits. Shop fine wines, whiskey, cognac, champagne, and more with temperature-controlled delivery across Lagos.",
-  openGraph: {
-    title: "Shop Premium Wines & Spirits | Lagos Liquor",
+export function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata("shop", {
+    title: "Shop | Lagos Liquor",
     description:
-      "Browse our curated collection of premium wines and spirits. Fine wines, whiskey, cognac, champagne, and more delivered across Nigeria.",
-    url: "/shop",
-  },
-  alternates: {
-    canonical: "/shop",
-  },
-};
+      "Browse our full collection of premium wines and spirits. Shop fine wines, whiskey, cognac, champagne, and more with temperature-controlled delivery across Lagos.",
+    path: "/shop",
+  });
+}
 
 export default async function ShopPage({
   searchParams,

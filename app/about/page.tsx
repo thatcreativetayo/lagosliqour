@@ -1,10 +1,15 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Button from "@/components/ui/Button";
+import { buildPageMetadata } from "@/lib/seo";
 
-export const metadata = {
-  title: "About | Lagos Liquor",
-  description: "Our story — premium wines curated for Lagos.",
-};
+export function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata("about", {
+    title: "About | Lagos Liquor",
+    description: "Our story — premium wines curated for Lagos.",
+    path: "/about",
+  });
+}
 
 export default function AboutPage() {
   return (

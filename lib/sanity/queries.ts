@@ -1,5 +1,10 @@
 import { groq, sanityFetch } from "./client";
-import type { SanityCategory, WineCardResult, WineDetailResult } from "./types";
+import type {
+  SanityCategory,
+  SiteSettingsResult,
+  WineCardResult,
+  WineDetailResult,
+} from "./types";
 
 const categoryFields = groq`
   _id,
@@ -48,7 +53,8 @@ const wineDetailFields = groq`
   variants,
   stockCount,
   "images": select(defined(bottleImage) => [bottleImage] + coalesce(images, []), coalesce(images, [])),
-  pairings
+  pairings,
+  seo
 `;
 
 export function getAllWines(categorySlug?: string) {
@@ -98,5 +104,44 @@ export function getLikedWines(ids: string[]) {
   return sanityFetch<WineCardResult[]>({
     query: groq`*[_type == "wine" && _id in $ids] | order(title asc) {${wineCardFields}}`,
     params: { ids },
+  });
+}
+
+const siteSettingsQuery = groq`*[_type == "siteSettings"][0]{
+  heroHeadline,
+  heroSubtext,
+  heroImage,
+  seo{
+    siteTitle,
+    titleTemplate,
+    defaultDescription,
+    keywords,
+    "defaultOgImage": defaultOgImage{ "url": asset->url, alt }
+  },
+  org{
+    name,
+    "logo": logo{ "url": asset->url },
+    phone,
+    email,
+    addressLocality,
+    addressCountry,
+    social
+  },
+  verification,
+  robots,
+  pages[]{
+    pageKey,
+    title,
+    description,
+    "ogImage": ogImage{ "url": asset->url, alt }
+  }
+}`;
+
+export function getSiteSettings() {
+  return sanityFetch<SiteSettingsResult | null>({
+    query: siteSettingsQuery,
+    // Cache settings for an hour — they change rarely and are read on every
+    // page's metadata build.
+    revalidate: 3600,
   });
 }

@@ -97,6 +97,18 @@ export const wineSchema = {
       description: "Hex color for dynamic product backgrounds, e.g. #C48B3E.",
       validation: (Rule: ValidationRule) => Rule.regex(/^#([0-9A-Fa-f]{3}){1,2}$/, { name: "hex color" }),
     },
+    {
+      name: "seo",
+      title: "SEO overrides",
+      type: "object",
+      description: "Optional. Overrides the auto-generated meta tags for this product.",
+      options: { collapsible: true, collapsed: true },
+      fields: [
+        { name: "metaTitle", title: "Meta title", type: "string" },
+        { name: "metaDescription", title: "Meta description", type: "text", rows: 3 },
+        { name: "ogImage", title: "Social share image", type: "image" },
+      ],
+    },
   ],
   preview: {
     select: {

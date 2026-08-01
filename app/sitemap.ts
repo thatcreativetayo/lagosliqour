@@ -1,7 +1,8 @@
 import { MetadataRoute } from "next";
 import { getAllWines, getCategories } from "@/lib/sanity/queries";
+import { getSiteUrl } from "@/lib/site-url";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://lagosliquur.com";
+const SITE_URL = getSiteUrl();
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Static routes

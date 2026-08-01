@@ -1,3 +1,6 @@
+import { getSiteUrl } from "@/lib/site-url";
+import type { SiteSettingsResult } from "@/lib/sanity/types";
+
 interface StructuredDataProps {
   data: Record<string, unknown>;
 }
@@ -12,42 +15,61 @@ export default function StructuredData({ data }: StructuredDataProps) {
 }
 
 // Helper function to generate organization structured data
-export function organizationData() {
+export function organizationData(settings?: SiteSettingsResult | null) {
+  const org = settings?.org;
+  const social = org?.social;
+  const sameAs = [social?.instagram, social?.facebook, social?.x, social?.tiktok].filter(
+    (v): v is string => Boolean(v)
+  );
+
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: "Lagos Liquor",
-    description: "Premium Nigerian wine and spirits e-commerce. Curated bottles delivered across Lagos.",
-    url: "https://lagosliquor.com",
-    logo: "https://lagosliquor.com/logo.svg",
-    contactPoint: {
-      "@type": "ContactPoint",
-      telephone: "+234-XXX-XXX-XXXX",
-      contactType: "Customer Service",
-      availableLanguage: "English",
-    },
+    name: org?.name || "Lagos Liquor",
+    description:
+      settings?.seo?.defaultDescription ||
+      "Premium Nigerian wine and spirits e-commerce. Curated bottles delivered across Lagos.",
+    url: getSiteUrl(),
+    logo: org?.logo?.url || `${getSiteUrl()}/logo.svg`,
+    ...(org?.phone || org?.email
+      ? {
+          contactPoint: {
+            "@type": "ContactPoint",
+            ...(org?.phone ? { telephone: org.phone } : {}),
+            ...(org?.email ? { email: org.email } : {}),
+            contactType: "Customer Service",
+            availableLanguage: "English",
+          },
+        }
+      : {}),
     address: {
       "@type": "PostalAddress",
-      addressLocality: "Lagos",
-      addressCountry: "NG",
+      addressLocality: org?.addressLocality || "Lagos",
+      addressCountry: org?.addressCountry || "NG",
     },
-    sameAs: [
-      "https://instagram.com/lagosliquor",
-      "https://facebook.com/lagosliquor",
-      "https://twitter.com/lagosliquor",
-    ],
+    ...(sameAs.length
+      ? { sameAs }
+      : {
+          sameAs: [
+            "https://instagram.com/lagosliquor",
+            "https://facebook.com/lagosliquor",
+            "https://twitter.com/lagosliquor",
+          ],
+        }),
   };
 }
 
 // Helper function to generate product structured data
 export function productData(wine: {
   title: string;
+  slug?: string;
   description?: string;
   price?: number;
   image: string;
   sku?: string;
   inStock?: boolean;
 }) {
+  const slug = wine.slug || wine.title.toLowerCase().replace(/\s+/g, "-");
   return {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -62,9 +84,7 @@ export function productData(wine: {
       availability: wine.inStock !== false
         ? "https://schema.org/InStock"
         : "https://schema.org/OutOfStock",
-      url: `https://lagosliquor.com/wines/${wine.title
-        .toLowerCase()
-        .replace(/\s+/g, "-")}`,
+      url: `${getSiteUrl()}/wines/${slug}`,
     },
   };
 }
@@ -84,15 +104,16 @@ export function breadcrumbData(items: Array<{ name: string; url: string }>) {
 }
 
 // Helper function to generate website structured data
-export function websiteData() {
+export function websiteData(settings?: SiteSettingsResult | null) {
+  const url = getSiteUrl();
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: "Lagos Liquor",
-    url: "https://lagosliquor.com",
+    name: settings?.seo?.siteTitle || settings?.org?.name || "Lagos Liquor",
+    url,
     potentialAction: {
       "@type": "SearchAction",
-      target: "https://lagosliquor.com/shop?q={search_term_string}",
+      target: `${url}/shop?q={search_term_string}`,
       "query-input": "required name=search_term_string",
     },
   };

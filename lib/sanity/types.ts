@@ -54,6 +54,7 @@ export interface WineDetailResult extends Omit<WineCardResult, "image"> {
   stockCount?: number;
   images?: SanityImage[];
   pairings?: string[];
+  seo?: WineSeo;
 }
 
 export interface ProductVariant {
@@ -65,9 +66,56 @@ export interface ProductVariant {
   sku?: string;
 }
 
+export interface SeoImage {
+  url?: string;
+  alt?: string;
+}
+
+export interface WineSeo {
+  metaTitle?: string;
+  metaDescription?: string;
+  ogImage?: SanityImage;
+}
+
+export interface PageSeoOverride {
+  pageKey: "home" | "shop" | "about" | "contact";
+  title?: string;
+  description?: string;
+  ogImage?: SeoImage;
+}
+
 export interface SiteSettingsResult {
   heroHeadline: string;
   heroSubtext: string;
   heroImage?: SanityImage;
   featuredWines: WineCardResult[];
+  seo?: {
+    siteTitle?: string;
+    titleTemplate?: string;
+    defaultDescription?: string;
+    keywords?: string[];
+    defaultOgImage?: SeoImage;
+  };
+  org?: {
+    name?: string;
+    logo?: SeoImage;
+    phone?: string;
+    email?: string;
+    addressLocality?: string;
+    addressCountry?: string;
+    social?: {
+      instagram?: string;
+      facebook?: string;
+      x?: string;
+      tiktok?: string;
+    };
+  };
+  verification?: {
+    google?: string;
+    bing?: string;
+  };
+  robots?: {
+    discourageSearchEngines?: boolean;
+  };
+  pages?: PageSeoOverride[];
 }
