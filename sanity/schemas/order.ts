@@ -89,6 +89,7 @@ export const orderSchema = defineType({
       of: [
         {
           type: "object",
+          name: "orderItem",
           fields: [
             { name: "wineId", title: "Wine ID", type: "string" },
             { name: "slug", title: "Slug", type: "string" },

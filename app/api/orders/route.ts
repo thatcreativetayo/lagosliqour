@@ -49,7 +49,7 @@ export async function POST(request: Request) {
       },
       deliveryNotes: body.deliveryNotes,
       items: body.items.map((item) => ({
-        _type: "object",
+        _type: "orderItem",
         _key: nanoid(),
         wineId: item.wineId,
         slug: item.slug,
