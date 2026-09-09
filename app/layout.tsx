@@ -22,6 +22,8 @@ const FALLBACK_KEYWORDS = [
   "fine wine shop",
   "alcohol delivery Lagos",
 ];
+const GOOGLE_SITE_VERIFICATION =
+  "Og8MrCUWYNzXLqFq39GvxWthU90vUC-1LdJwDbeiwPQ";
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSeoSettings();
@@ -73,7 +75,7 @@ export async function generateMetadata(): Promise<Metadata> {
           },
         },
     verification: {
-      ...(settings?.verification?.google ? { google: settings.verification.google } : {}),
+      google: settings?.verification?.google || GOOGLE_SITE_VERIFICATION,
       ...(settings?.verification?.bing
         ? { other: { "msvalidate.01": settings.verification.bing } }
         : {}),
