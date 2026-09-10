@@ -123,6 +123,20 @@ export const orderSchema = defineType({
       validation: (Rule) => Rule.required().min(0),
     }),
     defineField({
+      name: "couponCode",
+      title: "Coupon Code",
+      type: "string",
+      readOnly: true,
+      description: "Coupon applied to this order, if any.",
+    }),
+    defineField({
+      name: "discount",
+      title: "Discount",
+      type: "number",
+      readOnly: true,
+      description: "Amount discounted from the subtotal by the coupon.",
+    }),
+    defineField({
       name: "deliveryFee",
       title: "Delivery Fee",
       type: "number",

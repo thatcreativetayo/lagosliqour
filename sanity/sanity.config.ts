@@ -72,10 +72,19 @@ export default defineConfig({
                   .documentId("siteSettings")
                   .title("Site Settings")
               ),
+            S.listItem()
+              .title("Coupons")
+              .schemaType("coupon")
+              .child(
+                S.documentTypeList("coupon")
+                  .title("Coupons")
+                  .defaultOrdering([{ field: "_createdAt", direction: "desc" }])
+              ),
             S.divider(),
             ...S.documentTypeListItems().filter(
               (item) =>
                 item.getId() !== "order" &&
+                item.getId() !== "coupon" &&
                 !SINGLETON_TYPES.has(item.getId() ?? "")
             ),
           ]),

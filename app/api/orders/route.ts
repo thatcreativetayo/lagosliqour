@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { nanoid } from "nanoid";
 import { supabaseServer } from "@/lib/supabase/server";
 import { sanityWriteClient } from "@/lib/sanity/write-client";
+import { validateCoupon } from "@/lib/coupons/validate";
 import type { CartItem } from "@/lib/stores/cart";
 
 export interface CreateOrderRequest {
@@ -18,6 +19,7 @@ export interface CreateOrderRequest {
   deliveryFee: number;
   total: number;
   paymentMethod?: "online" | "transfer";
+  couponCode?: string;
 }
 
 function getErrorMessage(error: unknown) {
@@ -33,6 +35,30 @@ export async function POST(request: Request) {
     const random = Math.floor(Math.random() * 100).toString().padStart(2, '0'); // 2 random digits
     const reference = `LLORDER${timestamp}${random}`;
     const orderDate = new Date().toISOString();
+
+    // Re-derive money server-side. Never trust the client's total: the payment
+    // amount is validated against order.total later (lib/credo/verify.ts), so a
+    // forged discount here would let someone underpay.
+    const subtotal = Number(body.subtotal) || 0;
+    const deliveryFee = Number(body.deliveryFee) || 0;
+
+    let appliedCouponCode: string | undefined;
+    let discount = 0;
+    let couponId: string | undefined;
+
+    if (body.couponCode) {
+      const result = await validateCoupon(body.couponCode, subtotal);
+      if (result.valid) {
+        discount = result.discount;
+        appliedCouponCode = result.code;
+        couponId = result.coupon._id;
+      }
+      // If invalid (expired/limit reached between preview and submit) we simply
+      // ignore it rather than failing the order — the customer pays full price.
+    }
+
+    const total = Math.max(0, subtotal - discount) + deliveryFee;
+
     const sanityOrder = {
       _type: "order",
       reference,
@@ -60,15 +86,30 @@ export async function POST(request: Request) {
         lineTotal: item.lineTotal,
         packSize: item.packSize,
       })),
-      subtotal: body.subtotal,
-      deliveryFee: body.deliveryFee,
-      total: body.total,
+      subtotal,
+      ...(appliedCouponCode ? { couponCode: appliedCouponCode, discount } : {}),
+      deliveryFee,
+      total,
       paymentMethod: body.paymentMethod ?? "transfer",
       orderDate,
     };
 
     try {
       const createdOrder = await sanityWriteClient.create(sanityOrder);
+
+      // Count the redemption. Best-effort + atomic (inc), so it never blocks the
+      // order and concurrent orders don't clobber each other's count.
+      if (couponId) {
+        try {
+          await sanityWriteClient
+            .patch(couponId)
+            .setIfMissing({ usedCount: 0 })
+            .inc({ usedCount: 1 })
+            .commit();
+        } catch (couponError) {
+          console.error("Failed to increment coupon usage:", couponError);
+        }
+      }
 
       try {
         if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -85,9 +126,9 @@ export async function POST(request: Request) {
               street_address: body.streetAddress,
               landmark: body.landmark,
               delivery_notes: body.deliveryNotes,
-              subtotal: body.subtotal,
-              delivery_fee: body.deliveryFee,
-              total: body.total,
+              subtotal,
+              delivery_fee: deliveryFee,
+              total,
               items: body.items,
             });
 
@@ -103,6 +144,11 @@ export async function POST(request: Request) {
         orderId: createdOrder._id,
         reference,
         orderStore: "sanity",
+        subtotal,
+        discount,
+        deliveryFee,
+        total,
+        couponCode: appliedCouponCode ?? null,
       });
     } catch (sanityError) {
       console.error("Sanity order create failed:", sanityError);
@@ -129,9 +175,9 @@ export async function POST(request: Request) {
             street_address: body.streetAddress,
             landmark: body.landmark,
             delivery_notes: body.deliveryNotes,
-            subtotal: body.subtotal,
-            delivery_fee: body.deliveryFee,
-            total: body.total,
+            subtotal,
+            delivery_fee: deliveryFee,
+            total,
             items: body.items,
           })
           .select("id, reference")
@@ -150,6 +196,11 @@ export async function POST(request: Request) {
           orderId: data.id,
           reference: data.reference,
           orderStore: "supabase",
+          subtotal,
+          discount,
+          deliveryFee,
+          total,
+          couponCode: appliedCouponCode ?? null,
           warning: "Order was saved to Supabase because Sanity write permissions failed.",
         });
       } catch (supabaseError) {

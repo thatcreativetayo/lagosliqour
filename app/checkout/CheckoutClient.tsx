@@ -49,9 +49,29 @@ export default function CheckoutClient() {
   const [showBankModal, setShowBankModal] = useState(false);
   const [orderReference, setOrderReference] = useState("");
   const [customerData, setCustomerData] = useState<CheckoutFormData | null>(null);
+  // Totals confirmed by the server at order creation — the source of truth for
+  // the amount charged and shown in emails.
+  const [confirmed, setConfirmed] = useState<{
+    subtotal: number;
+    discount: number;
+    deliveryFee: number;
+    total: number;
+  } | null>(null);
 
+  // Coupon state. `applied` holds the server-validated discount for this subtotal.
+  const [couponInput, setCouponInput] = useState("");
+  const [applying, setApplying] = useState(false);
+  const [couponError, setCouponError] = useState("");
+  const [applied, setApplied] = useState<{ code: string; discount: number; label: string } | null>(
+    null
+  );
+
+  const discount = applied ? Math.min(applied.discount, cart.subtotal) : 0;
+  const discountedSubtotal = Math.max(0, cart.subtotal - discount);
+  // Free-delivery threshold is based on what was purchased (pre-discount), so a
+  // coupon never strips away earned free delivery.
   const deliveryFee = cart.subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_FEE;
-  const total = cart.subtotal + deliveryFee;
+  const total = discountedSubtotal + deliveryFee;
 
   const {
     register,
@@ -111,6 +131,49 @@ export default function CheckoutClient() {
     );
   }
 
+  async function handleApplyCoupon() {
+    const code = couponInput.trim();
+    if (!code) return;
+
+    setApplying(true);
+    setCouponError("");
+
+    try {
+      const response = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, subtotal: cart.subtotal }),
+      });
+      const data = await readApiResponse(response);
+
+      if (data.valid === true && typeof data.discount === "number") {
+        setApplied({
+          code: typeof data.code === "string" ? data.code : code,
+          discount: data.discount,
+          label: typeof data.label === "string" ? data.label : "",
+        });
+        setCouponError("");
+      } else {
+        setApplied(null);
+        setCouponError(
+          typeof data.message === "string" ? data.message : "That coupon is not valid."
+        );
+      }
+    } catch (error) {
+      console.error("Coupon apply error:", error);
+      setApplied(null);
+      setCouponError("Could not check that coupon. Please try again.");
+    } finally {
+      setApplying(false);
+    }
+  }
+
+  function handleRemoveCoupon() {
+    setApplied(null);
+    setCouponInput("");
+    setCouponError("");
+  }
+
   async function onSubmit(data: CheckoutFormData) {
     setSubmitting(true);
 
@@ -132,6 +195,7 @@ export default function CheckoutClient() {
         deliveryFee,
         total,
         paymentMethod,
+        couponCode: applied?.code,
       };
 
       console.log("Creating order with data:", { 
@@ -160,10 +224,24 @@ export default function CheckoutClient() {
         throw new Error("Order response was missing its reference. Please try again.");
       }
 
+      // Trust the server's totals (coupon re-validated + recomputed there).
+      const serverTotal =
+        typeof orderResult.total === "number" ? orderResult.total : total;
+      const confirmedTotals = {
+        subtotal:
+          typeof orderResult.subtotal === "number" ? orderResult.subtotal : cart.subtotal,
+        discount:
+          typeof orderResult.discount === "number" ? orderResult.discount : discount,
+        deliveryFee:
+          typeof orderResult.deliveryFee === "number" ? orderResult.deliveryFee : deliveryFee,
+        total: serverTotal,
+      };
+
       console.log("Order created successfully:", { orderId, reference });
-      
+
       setOrderReference(reference);
       setCustomerData(data);
+      setConfirmed(confirmedTotals);
 
       if (paymentMethod === "transfer") {
         console.log("Showing bank transfer modal");
@@ -178,7 +256,7 @@ export default function CheckoutClient() {
           body: JSON.stringify({
             reference,
             orderId,
-            amount: total,
+            amount: serverTotal,
             email: data.email,
             customerName: data.fullName,
           }),
@@ -209,6 +287,11 @@ export default function CheckoutClient() {
   async function handleBankTransferConfirm() {
     if (!customerData) return;
 
+    // Use server-confirmed totals for emails; fall back to local if missing.
+    const emailSubtotal = confirmed?.subtotal ?? cart.subtotal;
+    const emailDeliveryFee = confirmed?.deliveryFee ?? deliveryFee;
+    const emailTotal = confirmed?.total ?? total;
+
     try {
       console.log("=== Processing Bank Transfer Order ===");
       console.log("Order Reference:", orderReference);
@@ -224,7 +307,7 @@ export default function CheckoutClient() {
           customerEmail: customerData.email,
           customerPhone: customerData.phone,
           items: cart.items,
-          total,
+          total: emailTotal,
         }),
       });
 
@@ -244,9 +327,9 @@ export default function CheckoutClient() {
           customerName: customerData.fullName,
           customerEmail: customerData.email,
           items: cart.items,
-          subtotal: cart.subtotal,
-          deliveryFee,
-          total,
+          subtotal: emailSubtotal,
+          deliveryFee: emailDeliveryFee,
+          total: emailTotal,
           streetAddress: customerData.streetAddress,
           landmark: customerData.landmark,
           city: customerData.city,
@@ -367,7 +450,7 @@ export default function CheckoutClient() {
 
                   <div>
                     <label htmlFor="city" className="block text-xs uppercase text-wine/70 mb-2">
-                      City *
+                      City * 
                     </label>
                     <input
                       type="text"
@@ -532,11 +615,68 @@ export default function CheckoutClient() {
                 ))}
               </div>
 
+              <div className="border-t border-wine/10 pt-4 sm:pt-6 mb-4 sm:mb-6">
+                <label htmlFor="coupon" className="block text-xs uppercase text-wine/70 mb-2">
+                  Coupon Code
+                </label>
+                {applied ? (
+                  <div className="flex items-center justify-between gap-3 border border-wine/30 bg-wine/5 px-3 py-2.5">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-dark truncate">{applied.code}</p>
+                      {applied.label ? (
+                        <p className="text-xs text-wine">{applied.label} applied</p>
+                      ) : null}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleRemoveCoupon}
+                      className="text-xs uppercase text-wine hover:underline shrink-0"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      id="coupon"
+                      value={couponInput}
+                      onChange={(e) => setCouponInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleApplyCoupon();
+                        }
+                      }}
+                      placeholder="Enter code"
+                      className="flex-1 border border-wine/20 bg-transparent px-3 py-2.5 text-dark uppercase focus:border-wine focus:outline-none text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleApplyCoupon}
+                      disabled={applying || !couponInput.trim()}
+                      className="bg-wine text-cream px-4 py-2.5 border-2 border-wine hover:bg-transparent hover:text-wine transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                    >
+                      {applying ? "..." : "Apply"}
+                    </button>
+                  </div>
+                )}
+                {couponError ? (
+                  <p className="text-xs text-wine mt-2">{couponError}</p>
+                ) : null}
+              </div>
+
               <div className="border-t border-wine/10 pt-4 sm:pt-6 space-y-2 sm:space-y-3">
                 <div className="flex justify-between text-dark text-sm sm:text-base">
                   <span>Subtotal</span>
                   <span>₦{cart.subtotal.toLocaleString()}</span>
                 </div>
+                {discount > 0 ? (
+                  <div className="flex justify-between text-wine text-sm sm:text-base">
+                    <span>Discount{applied?.label ? ` (${applied.label})` : ""}</span>
+                    <span>−₦{discount.toLocaleString()}</span>
+                  </div>
+                ) : null}
                 <div className="flex justify-between text-dark text-sm sm:text-base">
                   <span>Delivery Fee</span>
                   <span>
