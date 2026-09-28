@@ -6,9 +6,9 @@ import { buildPageMetadata } from "@/lib/seo";
 
 export function generateMetadata(): Promise<Metadata> {
   return buildPageMetadata("home", {
-    title: "Lagos Liqour | Premium Wine & Spirits Delivery in Lagos",
+    title: "Lagos Liquor Store | Buy Wine, Whiskey & Spirits Online in Lagos Nigeria",
     description:
-      "Shop ultra-premium tequila, wines, and spirits in Lagos. Authentic bottles, fast delivery, Clerk customer accounts, and secure checkout.",
+      "Lagos' #1 online liquor store. Buy premium wine, whiskey, cognac, champagne, tequila & spirits. Fast delivery across Lagos & Nigeria. Order alcohol online with secure checkout. Temperature-controlled shipping.",
     path: "/",
   });
 }

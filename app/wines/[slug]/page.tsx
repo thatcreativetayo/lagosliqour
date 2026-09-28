@@ -68,9 +68,11 @@ export async function generateMetadata({ params }: WinePageProps): Promise<Metad
 
   // Prefer per-product SEO overrides, else fall back to derived values.
   const seo = wine.seo;
-  const title = seo?.metaTitle || `${wine.title} | Lagos Liquor`;
+  const title = seo?.metaTitle || `Buy ${wine.title} Online Lagos | ${wine.category?.title || 'Wine'} Delivery Nigeria - Lagos Liquor`;
   const description =
-    seo?.metaDescription || wine.description || `Premium ${wine.title} from Lagos Liquor`;
+    seo?.metaDescription || 
+    wine.description || 
+    `Buy ${wine.title} online in Lagos. Premium ${wine.category?.title || 'wine'} from ${wine.region || 'top vineyards'}. Fast alcohol delivery across Lagos & Nigeria. Order now at Lagos Liquor - Nigeria's trusted online liquor store.`;
   const ogImage = seo?.ogImage
     ? imageUrl(seo.ogImage, 1200)
     : wine.images?.[0]
@@ -130,6 +132,8 @@ export default async function WinePage({ params }: WinePageProps) {
     price: wine.price,
     image: images[0]?.src || "",
     inStock: wine.inStock,
+    category: wine.category?.title,
+    region: wine.region,
   });
 
   const breadcrumbSchema = breadcrumbData([

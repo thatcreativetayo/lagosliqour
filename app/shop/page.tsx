@@ -5,9 +5,9 @@ import { buildPageMetadata } from "@/lib/seo";
 
 export function generateMetadata(): Promise<Metadata> {
   return buildPageMetadata("shop", {
-    title: "Shop | Lagos Liquor",
+    title: "Shop Liquor Online Lagos | Wine, Whiskey, Spirits Delivery Nigeria",
     description:
-      "Browse our full collection of premium wines and spirits. Shop fine wines, whiskey, cognac, champagne, and more with temperature-controlled delivery across Lagos.",
+      "Browse Lagos' largest online liquor collection. Buy premium wines, whiskey, cognac, champagne, tequila & spirits. Fast alcohol delivery across Lagos & Nigeria. Shop liquor online with secure payment.",
     path: "/shop",
   });
 }

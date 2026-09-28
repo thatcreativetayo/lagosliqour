@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "allowArbitraryExtensions": true,
+    "allowImportingTsExtensions": true,
+    "jsx": "preserve",
+    "noEmit": true,
+    "rootDirs": [
+      "//?/C:/Users/Ariyo Eyitayo/Desktop/lagos-liqour",
+      "//?/C:/Users/Ariyo Eyitayo/Desktop/lagos-liqour/.rsvelte-language-server/tsgo/svelte"
+    ]
+  },
+  "files": [
+    "svelte-shims-v4.d.ts",
+    "svelte-native-jsx.d.ts",
+    "svelte-jsx-v4.d.ts"
+  ],
+  "include": [
+    "svelte/**/*",
+    "//?/C:/Users/Ariyo Eyitayo/Desktop/lagos-liqour/next-env.d.ts",
+    "//?/C:/Users/Ariyo Eyitayo/Desktop/lagos-liqour/**/*.ts",
+    "//?/C:/Users/Ariyo Eyitayo/Desktop/lagos-liqour/**/*.tsx",
+    "//?/C:/Users/Ariyo Eyitayo/Desktop/lagos-liqour/.next/types/**/*.ts",
+    "//?/C:/Users/Ariyo Eyitayo/Desktop/lagos-liqour/.next/dev/types/**/*.ts",
+    "//?/C:/Users/Ariyo Eyitayo/Desktop/lagos-liqour/**/*.mts"
+  ],
+  "extends": "//?/C:/Users/Ariyo Eyitayo/Desktop/lagos-liqour/tsconfig.json",
+  "exclude": [
+    "//?/C:/Users/Ariyo Eyitayo/Desktop/lagos-liqour/node_modules"
+  ]
+}
